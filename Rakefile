@@ -11,7 +11,7 @@ TEX_NAME = "#{NAME}.tex"
 DEFAULT_ARGS = "-shell-escape -interaction=nonstopmode -papersize=a4"
 
 # Cleaning FileLists
-CLEAN.include(['**/*.aux', '*.log', '*.out', '*.pyg', '*.bak', '*.toc', '*.bbl', '*.blg', '*.toc'])
+CLEAN.include(['**/*.aux', '*.log', '*.out', '*.pyg', '*.bak', '*.toc', '*.bbl', '*.blg', '*.toc', '*.lof'])
 CLOBBER.include('*.pdf')
 
 task :default => [:build, :clean]

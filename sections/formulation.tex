@@ -8,8 +8,6 @@ The custom built solutions usually don't look anything like a database and on th
 
 The second solution to the problem currently involves displaying the information in the database in its root form of tables, rows and views. This information is then logically displayed in lists and tables in the user interface for manipulation and querying. This solution shows the core ``data structures'' of the database and is not suited for novice users as it requires knowledge of these concepts to use.
 
-\section{Core Problem}
-
-We need to find a good compromise between these two extremes: user-friendly but bespoke and hard-to-use but powerful.
-
 \section{Proposed Solution}
+
+We need to find a good compromise between these two extremes: user-friendly but bespoke and hard-to-use but powerful. In order to find this compromise I am going to present the user with a new type of view of the database: a file and directory tree. This decision was made because users are familiar with manipulating files and folders already and they fit the shallow hierarchical structure of a database. It also allows the user to not just manipulate the files and directories but also edit their contents. If we map from records to files then editing a file can correspond to updating the record.
