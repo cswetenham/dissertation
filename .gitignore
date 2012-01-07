@@ -4,6 +4,7 @@
 *.pyg
 *.bak
 *.toc
+*.lof
 *.bbl
 *.blg
 *.toc
