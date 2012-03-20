@@ -18,9 +18,14 @@ Due to the dynamic nature of the language such as the ability to redefine and au
 
 There are numerous libraries that make testing Ruby code quick and easy such as \emph{RSpec}. Additionally, large \emph{Ruby} frameworks such as \emph{Ruby on Rails} have been developed from the ground up to allow for simple and native testing. This culture inspires an Agile attitude to refactoring and improving code quality.
 
+\item[Portability] \hfill
+
+\emph{Ruby} runs on a number of different operating systems and platforms. This factored into my choice as I did not want the avaliable systems that the project could run on to be limited by the language. In the end, it was \ac{FUSE} (see section \ref{ssec:filesystem}) that was the limiting portability factor.
+
 \end{description}
 
 \subsection{Filesystem}
+\label{ssec:filesystem}
 
 \ac{FUSE} is often used when creating a filesystem for a novelty purpose. It allows the developer to write code that responds to certain callbacks after it has been mounted on the existing filesystem at a certain directory. For example, when a directory is requested \ac{FUSE} will ask the developer's code what objects are present in that directory by supplying it the argument of a path. \ac{FUSE} then queries each of these objects to find out if they are a file or a folder and if there are any permissions that would not allow them to be shown. These results are then displayed to the user in their file explorer as if they were actually entities on disk.
 
