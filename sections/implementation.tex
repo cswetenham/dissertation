@@ -2,43 +2,84 @@
 
 \section{Choice of Language \& Technologies}
 
-The first big implementation decision that was made was the choice of language that was used to create the system. Before the beginning of term I had made a proof-of-concept of the system using \emph{C}. I found that the pace of development was too slow and difficult to make rapid progress. As such I decided to go in a different direction.
+The first big implementation decision that was made was the choice of language
+that was used to create the system. Before the beginning of term I had made
+a proof-of-concept of the system using \emph{C}. I found that the pace of
+development was too slow and difficult to make rapid progress. As such
+I decided to go in a different direction.
 
-In order to have a shallower learning curve I decided to use a language that I was familiar with: \emph{Ruby}. I've used Ruby extensively before on many personal and coursework projects. Besides the experience benefits withe the language there are other fantastic things about it.
+In order to have a shallower learning curve I decided to use a language that
+I was familiar with: \emph{Ruby}. I've used Ruby extensively before on many
+personal and coursework projects. Besides the experience benefits withe the
+language there are other fantastic things about it.
 
 \begin{description}
 
 \item[Community \& Existing Libraries] \hfill
 
-There is an extensive preexisting Ruby community that is extremely helpful and active. The advantage of this in my case is that there are already many libraries for the boilerplate or lower level code that I will be using. Importantly it already had bindings for \ac{FUSE} so writing the filesystem component of the project could be started immediately.
+There is an extensive preexisting Ruby community that is extremely helpful and
+active. The advantage of this in my case is that there are already many
+libraries for the boilerplate or lower level code that I will be using.
+Importantly it already had bindings for \ac{FUSE} so writing the filesystem
+component of the project could be started immediately.
 
 \item[Testing Culture] \hfill
 
-Due to the dynamic nature of the language such as the ability to redefine and augment existing classes at runtime it is possible for the programmer to create situations where code performs differently based on possible hidden factors that have occurred before the execution. This is an extremely powerful and useful tool but it must be handled in the correct way to eliminate the risk of error. One of the ways that has evolved to cope with this is a strong testing culture that is mandated by the community for almost all Ruby projects.
+Due to the dynamic nature of the language such as the ability to redefine and
+augment existing classes at runtime it is possible for the programmer to create
+situations where code performs differently based on possible hidden factors
+that have occurred before the execution. This is an extremely powerful and
+useful tool but it must be handled in the correct way to eliminate the risk of
+error. One of the ways that has evolved to cope with this is a strong testing
+culture that is mandated by the community for almost all Ruby projects.
 
-There are numerous libraries that make testing Ruby code quick and easy such as \emph{RSpec}. Additionally, large \emph{Ruby} frameworks such as \emph{Ruby on Rails} have been developed from the ground up to allow for simple and native testing. This culture inspires an Agile attitude to refactoring and improving code quality.
+There are numerous libraries that make testing Ruby code quick and easy such as
+\emph{RSpec}. Additionally, large \emph{Ruby} frameworks such as \emph{Ruby on
+Rails} have been developed from the ground up to allow for simple and native
+testing. This culture inspires an Agile attitude to refactoring and improving
+code quality.
 
 \item[Portability] \hfill
 
-\emph{Ruby} runs on a number of different operating systems and platforms. This factored into my choice as I did not want the avaliable systems that the project could run on to be limited by the language. In the end, it was \ac{FUSE} (see section \ref{ssec:filesystem}) that was the limiting portability factor.
+\emph{Ruby} runs on a number of different operating systems and platforms. This
+factored into my choice as I did not want the avaliable systems that the
+project could run on to be limited by the language. In the end, it was
+\ac{FUSE} (see section \ref{ssec:filesystem}) that was the limiting portability
+factor.
 
 \end{description}
 
 \subsection{Filesystem}
 \label{ssec:filesystem}
 
-\ac{FUSE} is often used when creating a filesystem for a novelty purpose. It allows the developer to write code that responds to certain callbacks after it has been mounted on the existing filesystem at a certain directory. For example, when a directory is requested \ac{FUSE} will ask the developer's code what objects are present in that directory by supplying it the argument of a path. \ac{FUSE} then queries each of these objects to find out if they are a file or a folder and if there are any permissions that would not allow them to be shown. These results are then displayed to the user in their file explorer as if they were actually entities on disk.
+\ac{FUSE} is often used when creating a filesystem for a novelty purpose. It
+allows the developer to write code that responds to certain callbacks after it
+has been mounted on the existing filesystem at a certain directory. For
+example, when a directory is requested \ac{FUSE} will ask the developer's code
+what objects are present in that directory by supplying it the argument of
+a path. \ac{FUSE} then queries each of these objects to find out if they are
+a file or a folder and if there are any permissions that would not allow them
+to be shown. These results are then displayed to the user in their file
+explorer as if they were actually entities on disk.
 
-This has a major advantage over regular filesystem development which is extremely difficult and requires extensive knowledge of the kernel to complete.
+This has a major advantage over regular filesystem development which is
+extremely difficult and requires extensive knowledge of the kernel to complete.
 
 \subsection{Query GUI}
 
-As discussed above, it isn't simply possible for a query interface to be added to the filesystem and so a separate but integrated application needed to be made in order to satisfy this requirement. I elected to use Java and Swing to complete this task as it is a mature and stable \ac{GUI} toolkit that is supported on a wide range of operating systems. It is more important that this application is more portable than the filesystem itself because it would be feasibly possible to mount the filesystem above over \ac{NFS} and only have this application on the clients computer to interact with it.
+As discussed above, it isn't simply possible for a query interface to be added
+to the filesystem and so a separate but integrated application needed to be
+made in order to satisfy this requirement. I elected to use Java and Swing to
+complete this task as it is a mature and stable \ac{GUI} toolkit that is
+supported on a wide range of operating systems. It is more important that this
+application is more portable than the filesystem itself because it would be
+feasibly possible to mount the filesystem above over \ac{NFS} and only have
+this application on the clients computer to interact with it.
 
 \section{Development}
 
 \subsection{Filesystem}
 
-\subsubsection{Query Language}
+\subsection{Query Language}
 
 \subsection{Query GUI}
