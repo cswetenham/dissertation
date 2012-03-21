@@ -34,5 +34,10 @@ task :view => [PDF_NAME] do
   puts "Unable to find any pdf viewer."
 end
 
+desc "Start the kicker"
+task :kick do
+  sh "kicker -e 'rake' report.tex sections"
+end
+
 # Load in the other tasks.
 Dir.glob("tools/tasks/*.rake").each { |r| load r }
