@@ -4,6 +4,8 @@
 \usepackage{graphicx}
 \usepackage{abbrevs}
 \usepackage{acronym}
+\usepackage{minted}
+\usepackage{multirow}
 
 % Project Details
 % Change these!
@@ -15,6 +17,9 @@
 \submityear{2012}
 \graduationdate{June 2012}
 \date{\today}
+
+\widowpenalty=3000
+\clubpenalty=3000
 
 \input{sections/misc/acronyms}
 \include{sections/misc/abstract}
@@ -31,7 +36,7 @@
     \standarddeclaration
     \include{sections/misc/dedication}
     \tableofcontents
-	\listoffigures
+	  \listoffigures
   \end{preliminary}
 
   % Chapters
@@ -46,7 +51,7 @@
   % Appendix
   \appendix
 
-  %\include...
+  \input{sections/appendix/evaluation.tex}
 
   % Bibliography
   \bibliography{/Users/cb/Documents/Project}{}

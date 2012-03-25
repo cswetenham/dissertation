@@ -42,11 +42,34 @@ code quality.
 \item[Portability] \hfill
 
 \emph{Ruby} runs on a number of different operating systems and platforms. This
-factored into my choice as I did not want the avaliable systems that the
+factored into my choice as I did not want the available systems that the
 project could run on to be limited by the language. In the end, it was
 \ac{FUSE} (see section \ref{ssec:filesystem}) that was the limiting portability
 factor.
 
+\end{description}
+
+\emph{Ruby} was a good choice of language for implementing both the filesystem
+and query language. However, to build the application that allows the user to
+query the database a GUI toolkit was needed. Unfortunately \emph{Ruby} is not
+a suitable language for this task as it does not have any mature, powerful,
+and platform-independent GUI toolkits.
+
+In order to develop this stage I decided to use \emph{Java} and the
+\emph{Swing} interface library. This decision was made for two main reasons.
+
+\begin{description}
+  \item[Portability] \hfill
+
+    The language that was used for this application must be able to run on
+    any platform that the filesystem was used. One of the main advantages
+    of using \emph{Java} in any project is that the same code and
+    sometimes even the same executable can be run on multiple platforms
+    and systems. This is thanks to the ``Write once, run everywhere.''
+    design consideration\footnote{In reality this is more likely to be
+    ``Write once, debug everywhere.''}.
+
+  \item[Familiarity] \hfill
 \end{description}
 
 \subsection{Filesystem}
@@ -80,6 +103,129 @@ this application on the clients computer to interact with it.
 
 \subsection{Filesystem}
 
+The first stage of development was to create the filesystem on which all of the
+other projects are based. As mentioned above, over summer I had created
+a proof-of-concept system that allowed the user to view a read-only filesystem
+representing a database. This was written in \emph{C} and used the native
+\emph{FUSE} bindings. Not being satisfied with the development time and
+complexities of the language and library I switched to using \emph{Ruby} and
+the \emph{FuseFS} library.
+
+The \emph{FuseFS} library works by ``mounting'' a class in a certain directory.
+This class is required to implement certain methods (though due to the lack of
+type-safety in \emph{Ruby} this can all fall apart at runtime). These methods
+are then called when the user interacts with the filesystem whereupon the
+return value from the called function is interpreted by the library and shown
+in the filesystem. An example of the ``Hello World'' filesystem is shown in
+figure~\ref{fig:fusefs}. This filesystem contains a single file called
+\texttt{hello.txt} which when read has the contents \texttt{Hello, World!}.
+
+\begin{figure}
+\begin{minted}[linenos]{ruby}
+class HelloDir
+  def contents(path)
+    ['hello.txt']
+  end
+
+  def file?(path)
+    path == '/hello.txt'
+  end
+
+  def read_file(path)
+    "Hello, World!\n"
+  end
+
+  def size(path)
+    read_file(path).size
+  end
+end
+\end{minted}
+  \caption{A Sample \emph{FuseFS} filesystem.}
+  \label{fig:fusefs}
+\end{figure}
+
+Using this library I created the filesystem that allowed the user to manipulate
+databases. Each table was represented as a directory in the filesystem and
+inside were files representing the records in those tables. Each of these were
+formatted as \texttt{csv} files for ease of development and portability between
+many different spreadsheet editors.
+
+It was noticed that there was no way to select only certain columns to display
+in these CSV files rather than just displaying all of them. A new directory was
+added inside the table that allowed a user to move columns (represented again
+as files) between two folders denoting the used and unused columns. Initially
+it was planned that the user would be able to drag the file between the two
+directories in order to change this. However, it was found that when using
+\ac{FUSE} a file move only looks like a file deletion and a new file write with
+no link between them. To overcome this the method which the user changes the
+selected columns was changed to use the delete action. This is not ideal and
+should be later changed to a more suitable action.
+
+Similar to the \texttt{/proc} filesystem which my project gained much of its
+inspiration I added files that could be read to find out information about the
+database. For example, this includes the name, list of tables, path, and string
+encoding. This allows users to easily find out information by only reading
+a file instead of interrogating the database.
+
+\subsubsection{Filesystem DSL Library}
+
+The more I developed this system the slower it became to add new functionality
+as the code became more complex. During the Christmas break I decided to write
+a new library for creating these filesystem definitions. I decided to start out
+with the ``dream library'' by writing down (in \emph{Ruby}) how \emph{I} would
+like to build the filesystem. I have included the example I originally wrote in
+figure~\ref{fig:skra}. This new \ac{DSL} library is called
+\emph{Skra}\footnote{Skr\'{a} is Icelandic for ``file'' or ``directory''}.
+
+The example below creates a filesystem that is mounted at \texttt{/mount/point}
+and contains a directory called \texttt{hello} which has read and write
+permissions. Inside this directory are two files: one named \texttt{path} which
+contains its own path and the other is called \texttt{time} which when read
+will return the current time.
+
+Using this library allowed me to develop the remainder of the project far more
+quickly and easily. The library itself was an interesting program to write due
+to its implementation as a DSL.
+
+\begin{figure}
+\begin{minted}[linenos]{ruby}
+Filesystem.new "/mount/point" do
+  directory "hello", :perms => [:r, :w] do
+    file "path" do |path|
+      # File contains its own path.
+      path
+    end
+
+    file "time" do |path|
+      # Shows the current time.
+      Time.now.to_s
+    end
+  end
+end
+\end{minted}
+  \caption{An example \emph{Skra} layout.}
+  \label{fig:skra}
+\end{figure}
+
 \subsection{Query Language}
 
+You may have noticed above that I have not mentioned how we query the database.
+This is due to the query problem that was mentioned earlier in
+section~\ref{sec:queryproblem}. In order to query the database we needed an
+intermediate language which could be easily generated by another application.
+
+To create this I again used the expressiveness of \emph{Ruby} to create the
+language. This would then use the \emph{Arel}
+library\footnote{\url{https://github.com/rails/arel}} from \emph{Ruby on Rails}
+in order to generate the \ac{SQL}. On top of this library was a small amount of
+code that allowed that converted from the input files into commands to generate
+the relational algebra that could then be turned into \ac{SQL}.
+
+% TODO: More.
+
 \subsection{Query GUI}
+
+In order to generate this language a \ac{GUI} needed to be created that allowed
+users to draw the graph representation of their query.
+
+TODO: More.

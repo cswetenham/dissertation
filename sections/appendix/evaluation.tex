@@ -1,0 +1,160 @@
+\chapter{Evaluation}
+
+\section{Tasks}
+\label{sec:tasks}
+
+\begin{enumerate}
+\item What is the matriculation number of the oldest student?
+\item What is the first name of the student with the matriculation number \texttt{0824586}?
+\item What is the highest grade that the student with \texttt{id=6} achieved?
+\item What is the name of the student with the lowest grade overall?
+\item Which students take the course \texttt{Maths 101}?
+\end{enumerate}
+
+\section{Schema}
+\label{sec:schema}
+
+\includegraphics[width=1.0\textwidth]{images/schema.pdf}
+
+\section{Results}
+
+\subsection{User 1}
+
+\subsubsection{Information}
+
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Prior Database Experience} & First Year Course \\
+	\hline
+\end{tabular}
+
+\subsubsection{Task Timing}
+
+\begin{tabular}{|l|l|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|r|}{\textbf{Task}} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\
+	\hline
+	\multirow{2}{*}{Time (s) [Correct]} & SQL   & -   & -   & -   & -   & -   \\
+	                                            & Graph & 145 [YES] & 148 [YES] & 291 [YES] & 250 [YES] & 205 [NO] \\
+	\hline
+\end{tabular}
+
+\subsubsection{Notes and Difficulties}
+
+\begin{itemize}
+
+	\item
+	User looked for a help document.
+
+	\item
+	User did not understand the difference between \textbf{select} and \textbf{filter}.
+
+	\item
+	User was confused by difference between the operators \textbf{equal} and \textbf{matches}.
+
+	\item
+	User attempted to move the nodes once they were placed.
+
+\end{itemize}
+
+\subsection{User 2}
+
+\subsubsection{Information}
+
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Prior Database Experience} & First Year Course \\
+	\hline
+\end{tabular}
+
+\subsubsection{Task Timing}
+
+\begin{tabular}{|l|l|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|r|}{\textbf{Task}} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\
+	\hline
+	\multirow{2}{*}{Time (s) [Correct]} & SQL   & 48 [NO]  & 19 [YES] & 35 [NO]  & -   & -   \\
+	                                       & Graph & 46 [YES] & 49 [YES] & 106 [NO] & 69 [YES] & 170 [NO] \\
+	\hline
+\end{tabular}
+
+\subsubsection{Notes and Difficulties}
+
+\begin{itemize}
+
+	\item
+	User did not understand the difference between \textbf{select} and \textbf{filter}.
+
+\end{itemize}
+
+\subsection{User 3}
+
+\subsubsection{Information}
+
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Prior Database Experience} & First, Third, and Fourth Year Courses \\
+	\hline
+\end{tabular}
+
+\subsubsection{Task Timing}
+
+\begin{tabular}{|l|l|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|r|}{\textbf{Task}} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\
+	\hline
+	\multirow{2}{*}{Time (s) [Correct]} & SQL   & 90 [NO]  & 23 [YES] & 70 [YES] & 129 [NO]  & 73 [YES]   \\
+	                                    & Graph & 70 [YES] & 42 [YES] & 167 [YES] & 113 [YES] & 125 [YES] \\
+	\hline
+\end{tabular}
+
+\subsubsection{Notes and Difficulties}
+
+\begin{itemize}
+
+	\item
+	User had no issues.
+
+\end{itemize}
+
+\subsection{User 4}
+
+\subsubsection{Information}
+
+\begin{tabular}{|l|l|}
+	\hline
+	\textbf{Prior Database Experience} & First Year Course \\
+	\hline
+\end{tabular}
+
+\subsubsection{Task Timing}
+
+\begin{tabular}{|l|l|c|c|c|c|c|}
+	\hline
+	\multicolumn{2}{|r|}{\textbf{Task}} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\
+	\hline
+	\multirow{2}{*}{Time (s) [Correct]} & SQL   & 99 [YES] & 21 [YES] & 73 [YES] & 130 [YES] & 65  [YES] \\
+	                                    & Graph & 89 [YES] & 35 [YES] & 93 [YES] & 137 [YES] & 163 [NO]  \\
+	\hline
+\end{tabular}
+
+\subsubsection{Notes and Difficulties}
+
+\begin{itemize}
+
+	\item
+	User attempted to delete a node.
+
+	\item
+	User complained that right click was difficult.
+
+	\item
+	User attempted to move a node that was already placed.
+
+	\item
+	User was confused with how to use the join node.
+
+	\item
+	User was confused about how to use the output of 2 joins.
+
+\end{itemize}
