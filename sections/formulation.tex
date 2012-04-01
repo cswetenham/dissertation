@@ -10,60 +10,68 @@ to comprehend.
 
 \subsection{Bespoke Software}
 
-The custom built solutions usually don't look anything like a database and
-often, on the contrary, completely hide the fact that there is a database
-powering them. Web applications such as \emph{Facebook} are classic examples of
-this: behind the scenes there will be databases holding and retrieving
-information but there will never be a single mention of a select, join, table,
-or view on the front end for the user to contend with.
+The custom built solutions usually don't look anything like a database
+and often, on the contrary, completely hide the fact that there is
+a database powering them. Web applications such as \emph{Facebook} are
+classic examples of this: behind the scenes there will be databases
+holding and retrieving information but there will never be a single
+mention of a select, join, table, or view on the front end for the user
+to contend with.
 
-There are clear advantages to showing the database in this manner. Assuming
-that the front end is well designed and accessible, any user will be able to
-perform all of the required actions on the stored data. This also includes
-operations that are would be fantastically complex if they needed to be typed
-out as a collection of huge \ac{SQL} statements surrounded by a transaction.
-Instead, they are just a button on a web page.
+There are clear advantages to showing the database in this manner.
+Assuming that the front end is well designed and accessible, any user
+will be able to perform all of the required actions on the stored data.
+This also includes operations that are would be fantastically complex if
+they needed to be typed out as a collection of huge \ac{SQL} statements
+surrounded by a transaction. Instead, they are just a button on a web
+page.
 
-The problem with applying this solution to the database accessibility problem
-is how specific and bespoke it is. We are unable to generalise this beyond very
-simple cases due to the varying scales and types of data stored. In addition,
-these solutions are expensive and time consuming to create each time we have
-a new schema and data to display and manipulate.
+The problem with applying this solution to the database accessibility
+problem is how specific and bespoke it is. We are unable to generalise
+this beyond very simple cases due to the varying scales and types of
+data stored. In addition, these solutions are expensive and time
+consuming to create each time a new schema is used and data to display
+and manipulate.
 
 \subsection{General Purpose Software}
 
-A compromise needs to be found between these two extremes: user-friendly but
-bespoke and hard-to-use but powerful. In order to find this compromise I am
-going to present the user with a new type of view of the database that they are
-already familiar with: a file and directory tree.
+A compromise needs to be found between these two extremes: user-friendly
+but bespoke and hard-to-use but powerful. In order to find this
+compromise I am going to present the user with a new type of view of the
+database that they are already familiar with: a file and directory tree.
 
-This representation makes sense from a familiarity perspective as nearly all
-computer users will have at some point had experience of using a file tree. It
-additionally makes sense when applied to the structure of a database too.
-\acf{DBMS} have a shallow tree structure when representing the hierarchy of
-a server, database, table, and records. A file tree is a simple way of
-displaying this structure that the user is familiar with.
+This representation makes sense from a familiarity perspective as nearly
+all computer users will have at some point had experience of using
+a file tree. It additionally makes sense when applied to the structure
+of a database too. \acf{DBMS} have a shallow tree structure when
+representing the hierarchy of a server, database, table, and records.
+A file tree is a simple way of displaying this structure that the user
+is familiar with.
 
-A further advantage of using the files and directories representation is that
-it also allows the user to not just manipulate the files and directories but
-also modify their contents. This allows us to present the data to the user in
-a program that they are familiar with such as an office package.
+A further advantage of using the files and directories representation is
+that it also allows the user to not just manipulate the files and
+directories but also modify their contents. This allows us to present
+the data to the user in a program that they are familiar with such as an
+office package.
 
 \section{Proposed Solution}
 
-A good compromise needs to be found between these two extremes: user-friendly
-but bespoke and hard-to-use but powerful. In order to find this compromise I am
-going to present the user with a new type of view of the database that they are
-already familiar with: a file and directory tree.
+A good compromise needs to be found between these two extremes:
+user-friendly but bespoke and hard-to-use but powerful. In order to find
+this compromise I am going to present the user with a new type of view
+of the database that they are already familiar with: a file and
+directory tree.
 
-This representation makes sense from a familiarity perspective as nearly all
-computer users will have at some point had experience of using a file tree. It
-additionally makes sense when applied to the structure of a database too.
-\acf{DBMS} have a shallow tree structure when representing the hierarchy of
-a server, database, table, and records. A file tree is a simple way of
-displaying this structure that the user is familiar with.
+This representation makes sense from a familiarity perspective as nearly
+all computer users will have at some point had experience of using
+a file tree. It additionally makes sense when applied to the structure
+of a database too. \acf{DBMS} have a shallow tree structure when
+representing the hierarchy of a server, database, table, and records.
+A file tree is a simple way of displaying this structure that the user
+is familiar with.
 
-A further advantage of using the files and directories representation is that
-it also allows the user to not just manipulate the files and directories but
-also modify their contents. This allows us to present the data to the user in
-a program that they are familiar with such as an office package.
+A further advantage of using the files and directories representation is
+that it also allows the user to not just manipulate the files and
+directories but also modify their contents. This allows us to present
+the data to the user in a program that they are familiar with such as an
+office package.

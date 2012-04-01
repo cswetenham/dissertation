@@ -13,7 +13,7 @@ created in the database.
 
 The second approach is more complicated than the first but implements a similar
 idea. Instead of creating a program which monitors the standard filesystem for
-changes we create a filesystem that can be mounted on the users system and
+changes. A filesystem is created that can be mounted on the users system and
 provides live updates of any changes through a system of callbacks.
 
 An example of operations and their corresponding action in the other system is
@@ -49,28 +49,28 @@ However, not all database management systems have support for these features.
 Waiting for changes in a filesystem is possible simply by scanning over the
 filesystem for any modification dates that have changed since the last scan was
 performed. However, this syster is very ``brute force'' and may be slow on
-systems with many files. To improve upon this method we may use operating
-system APIs that allow us to register for callbacks when files are changed. The
+systems with many files. To improve upon this method operating system APIs can
+be used that allow us to register for callbacks when files are changed. The
 libraries to perform these tasks are \texttt{inotify} for Linux and
 \texttt{fs-events} for Mac OS X.
 
-This is a less than ideal solution for checking for updates when we may have
-millions of records and therefore millions files that need checking. This
+This is a less than ideal solution for checking for updates when there may be
+millions of records and therefore millions files that need scanning. This
 solution just does not scale well even with the operating system assistance.
 Additionally, the constant polling of the filesystem is a lot of wasted work
 that will deplete the battery of laptops unnecessarily and waste power on
-desktop machines. Instead, we should flip the problem around and instead of
-looking for the files that have been changed, we should get any file that
-changes to tell us about itself.
+desktop machines. Instead, the problem can be flipped around and instead of
+looking for the files that have been changed, any changed file can tell us
+about the modifications that have been performed upon it.
 
 \subsection{Filesystem}
 
-By using a filesystem instead of an separate polling program we tighten the
-feedback loop from changes to the files to the database. By doing this we avoid
-the potentially expensive operations of scanning the filesystem for changes and
-have direct callbacks that reference the exact file changed. This has the
-additional advantage of automatically handling migrating any changes back from
-the database to the filesystem just by refreshing the current view.
+By using a filesystem instead of an separate polling program the feedback loop
+is tightened from changes to the files to the database. By doing this
+potentially expensive operations are avoided when scanning the filesystem for
+changes and have direct callbacks that reference the exact file changed. This
+has the additional advantage of automatically handling migrating any changes
+back from the database to the filesystem just by refreshing the current view.
 
 \section{Scaling Issues}
 
@@ -107,14 +107,14 @@ records.
 
 In order to allow the user to perform more complex queries on the database
 a separate application is needed. However it is critical that still presents
-the database as a filesystem. If we look at how users perform complex sequences
-of operations on a filesystem: there are two different approaches depending on
-the level of expertise of the user.
+the database as a filesystem. When looking at how users perform complex
+sequences of operations on a filesystem: there are two different approaches
+depending on the level of expertise of the user.
 
 \subsection{Mirroring Filesystem Solutions}
 
-If we have a task that we would like to perform such as resizing all of the
-images in a folder that were taken in the last week and which have the word
+If there is a task that a user requires to be performed such as resizing all of
+the images in a folder that were taken in the last week and which have the word
 ``flower'' in the filename then depending on the level of expertise of the user
 they will probably approach this problem in two different ways.
 
@@ -153,12 +153,11 @@ performs the same task as described above.
   \label{fig:automator}
 \end{figure}
 
-We should be able to take this existing solution and paradigm and apply it to
-the database querying problem. I believe that this will work especially well if
-we make the records maintain their file-like qualities even inside the
-application. In order to convert this graph of command into a database action
-we are going to need to generate \ac{SQL} which will perform the desired
-action. This is the next design challenge.
+This existing solution and paradigm can be taken and applied to the database
+querying problem. This will work especially well if the records maintain their
+file-like qualities even inside the application. In order to convert this graph
+of command into a database action \ac{SQL} needs to be generated which will
+perform the desired action. This is the next design challenge.
 
 \subsection{Creating SQL}
 
@@ -186,10 +185,10 @@ While more advanced users may be able to write the intermediate language
 directly in order to query the database there needs to be a program to help the
 majority of users to be able to use the system. The example used above
 (\emph{Automator}) allows the users to create a simple flow of data through
-different applications and services. We are able to see a similar pattern that
-can be used to query databases by having the user create a flow that is similar
-to the query graph that will be used inside the database. The graph that the
-user creates can then be traversed in order to generate the language described
+different applications and services. A similar pattern can be seen that can be
+used to query databases by having the user create a flow that is similar to the
+query graph that will be used inside the database. The graph that the user
+creates can then be traversed in order to generate the language described
 above.
 
 Once the user has created the graph they are able to save it to a file. It was

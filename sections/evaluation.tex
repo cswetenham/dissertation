@@ -114,17 +114,17 @@ To this end it may be wise to remove the concept of joins from the application
 entirely and automatically enter them into the queries if they are
 needed.\footnote{Sasa Pastor's project work this year does exactly this and
 would be a useful starting point if this was implemented.} When a user selects
-data that is sourced from more than 1 table we would automatically scan the
+data that is sourced from more than one table it would automatically scan the
 database for the list of tables that could be joined together in order to
 compute the join. However, at the current moment the application doesn't have
 a connection open to the database while it is running it would be up to the
 user to enter in the schema details in order for this to be computed.
-Alternatively we could allow the application to connect to the database to
+Alternatively the application could be allowed to connect to the database to
 gather the schema for itself.
 
 The next problem is working out how to join two tables together also without
 requiring the user to enter extra information. Given two tables there are a few
-ways that we could compute the correct join attributes.
+ways that the correct join attributes could be computed.
 
 \begin{itemize}
 
@@ -140,7 +140,7 @@ ways that we could compute the correct join attributes.
 	column of the other table.
 
 \item All of the above. By using a compound score and weighting all of the
-	different metrics based on how reliable they were we would be able to take
+	different metrics based on how reliable they were it would be possible to take
 	the pairing with the maximum score and use that.
 
 \end{itemize}
@@ -203,7 +203,7 @@ the project.
 		\nopagebreak
 
 		There is a great opportunity to fully exploit the fact that
-		a filesystem is able to serve up any data that we tell it to. Another
+		a filesystem is able to serve up any data that it is told to. Another
 		future feature would be to allow the system to serve up different files
 		in order to visualise the data in different ways. For example, we could
 		display images and charts to the user describing the data that is
