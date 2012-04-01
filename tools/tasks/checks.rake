@@ -38,9 +38,18 @@ namespace :check do
   end
 end
 
-desc "Count the number of words in the document"
-task :word_count do
-  puts "Counting the words in the document... [#{TEX_NAME}]"
-  perl "tools/texcount.pl", TEX_NAME
+task :count => ['word_count:brief']
+namespace :word_count do
+  desc "Count the number of words in the document"
+  task :summary do
+    puts "Counting the words in the document... [#{TEX_NAME}]"
+    puts perl "tools/texcount.pl -sub -inc", TEX_NAME
+  end
+
+  desc "Count the number of words in the document [BRIEF]"
+  task :brief do
+    puts "Counting the words in the document... [#{TEX_NAME}]"
+    puts "Subcounts: text+headers+captions (#headers/#floats/#inlines/#displayed)"
+    puts perl "tools/texcount.pl -brief -inc", TEX_NAME
+  end
 end
-task :count => [:word_count]

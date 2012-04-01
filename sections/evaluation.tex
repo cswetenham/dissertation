@@ -1,4 +1,4 @@
-\chapter{Evaluation}
+\chapter{Evaluation \& Future Work}
 
 An important stage in developing a user interface (especially one which is
 designed to improve usability) is to evaluate the system with user testing.
@@ -112,14 +112,15 @@ problem. Both sets of users had trouble joining more than 2 tables together.
 
 To this end it may be wise to remove the concept of joins from the application
 entirely and automatically enter them into the queries if they are
-needed.\footnote{TODO: Possibly cite Sasa's project work this year?} When
-a user selects data that is sourced from more than 1 table we would
-automatically scan the database for the list of tables that could be joined
-together in order to compute the join. However, at the current moment the
-application doesn't have a connection open to the database while it is running
-it would be up to the user to enter in the schema details in order for this to
-be computed. Alternatively we could allow the application to connect to the
-database to gather the schema for itself.
+needed.\footnote{Sasa Pastor's project work this year does exactly this and
+would be a useful starting point if this was implemented.} When a user selects
+data that is sourced from more than 1 table we would automatically scan the
+database for the list of tables that could be joined together in order to
+compute the join. However, at the current moment the application doesn't have
+a connection open to the database while it is running it would be up to the
+user to enter in the schema details in order for this to be computed.
+Alternatively we could allow the application to connect to the database to
+gather the schema for itself.
 
 The next problem is working out how to join two tables together also without
 requiring the user to enter extra information. Given two tables there are a few
@@ -164,5 +165,83 @@ they have placed the nodes in the wrong location.
 To help the users understand the flow of data through the application it may be
 useful for them to visualise this by adding arrows on to the edges between
 nodes. This makes sense as the graph is technically directed.
+
+\item[Help \& Tooltips] \hfill
+
+Users suggested that there should be an integrated help document in order to
+get started with the application. One user also suggested adding tooltips to
+the node types so that their usage and attributes can be found by user
+exploration of the progream rather than being explicitly told.
+
+\end{description}
+
+\section{Future Work}
+
+There is additional work that was not suggested by users in their evaluation of
+the program but that is the sensible next steps for this application. This
+additional work contains future feature possibilities from all components of
+the project.
+
+\subsection{Filesystem}
+
+\begin{description}
+
+	\item[Spreadsheet Compatability] \hfill
+
+		At the moment the application is only compatible with displaying and
+		detecting edits to \texttt{.csv} files. A more generic interface should
+		be implemented using the delegate pattern so developers are easily able
+		to provide their own file type adapters. These adapters can then
+		implement methods that will read, parse and generate the new file
+		types. The next file types that should be implemented in order to
+		increase the audience for the system are probably the Excel file types
+		(\texttt{.xls}, \texttt{.xlsx}) and the OpenOffice file type
+		(\texttt{.ods}).
+
+	\item[Visualisation Files] \hfill
+
+		\nopagebreak
+
+		There is a great opportunity to fully exploit the fact that
+		a filesystem is able to serve up any data that we tell it to. Another
+		future feature would be to allow the system to serve up different files
+		in order to visualise the data in different ways. For example, we could
+		display images and charts to the user describing the data that is
+		inside the database. This is another opportunity to allow other
+		developers create custom adapters to allow them to easily present the
+		data in any way that they choose.
+
+	\item[Database Portability] \hfill
+
+		The system is currently only tested and compatible with the
+		\emph{SQLite} \ac{DBMS} due to the simplicity of creating a new
+		database in memory. However, the internal components are all database
+		agnostic and should will work with any of the popular databases. Some
+		additional work needs to be done to set up tests for these new
+		databases and to allow the user to pass their connection information on
+		to the already compatible internals.
+
+\end{description}
+
+\subsection{Query Application}
+
+\begin{description}
+
+	\item[Node Icons] \hfill
+
+		It was brought up during supervisor meetings that the icons that are
+		currently used to represent the nodes are dreadful. A less offensive
+		colour scheme is now being used but further work could be done in order
+		to improve the aesthetics and usability of the application. The
+		replacement icons could convey more accurately what the node was
+		actually doing.
+
+	\item[More Node Types] \hfill
+
+		The \emph{Squeal} language currently supports more operations than the
+		user is able to create with the query application. For example, users
+		are able to use the \texttt{SKIP} \ac{SQL} operator when using the
+		scripting language but this node is not available in the application.
+		There should be feature parity between the two applications.
 
 \end{description}

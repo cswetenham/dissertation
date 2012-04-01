@@ -7,6 +7,8 @@
 \usepackage{minted}
 \usepackage{multirow}
 
+\renewcommand\theFancyVerbLine{\normalsize\arabic{FancyVerbLine}}
+
 % Project Details
 \title{Database Access with a Filesystem}
 \author{Christopher Brown}
@@ -18,7 +20,7 @@
 \date{\today}
 
 \input{sections/misc/acronyms}
-\include{sections/misc/abstract}
+\input{sections/misc/abstract}
 
 % Extra Package Commands
 
@@ -30,9 +32,9 @@
     % Preamble
     \input{sections/misc/acknowledgements}
     \standarddeclaration
-    \input{sections/misc/dedication}
+    %\input{sections/misc/dedication}
     \tableofcontents
-	  \listoffigures
+    \listoffigures
   \end{preliminary}
 
   % Chapters

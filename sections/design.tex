@@ -72,8 +72,6 @@ have direct callbacks that reference the exact file changed. This has the
 additional advantage of automatically handling migrating any changes back from
 the database to the filesystem just by refreshing the current view.
 
-% TODO: Add more stuff.
-
 \section{Scaling Issues}
 
 There is some concern about how this system scale up to the sizes that some
@@ -185,14 +183,18 @@ these files to be saved on it and having it return the results.
 \subsection{Querying the Filesystem}
 
 While more advanced users may be able to write the intermediate language
-directly in order to query the database there needs to be a program to help
-the majority of users to be able to use the system. The example used above
+directly in order to query the database there needs to be a program to help the
+majority of users to be able to use the system. The example used above
 (\emph{Automator}) allows the users to create a simple flow of data through
 different applications and services. We are able to see a similar pattern that
-can be used to query databases by having the user create a flow that is
-similar to the query graph that will be used inside the database.
+can be used to query databases by having the user create a flow that is similar
+to the query graph that will be used inside the database. The graph that the
+user creates can then be traversed in order to generate the language described
+above.
 
-The graph that the user creates can then be traversed in order to generate
-the language described above.
-
-TODO: More.
+Once the user has created the graph they are able to save it to a file. It was
+key in this design that the user was still only using the filesystem to interact
+with the database and not communicate with it directly. This is acomplished by
+having a directory in the filesystem that when the output files are saved
+inside this directory they are automatically executed and the results are
+presented to the user.
