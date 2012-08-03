@@ -1,22 +1,31 @@
-\documentclass[12pt,twoside,abbrevs,bsc,logo,notimes,deptreport]{styles/infthesis}
+\documentclass[12pt,twoside,abbrevs,msc,ai,notimes,logo,sansheadings]{infthesis}
 
 % Packages
 \usepackage{graphicx}
 \usepackage{abbrevs}
 \usepackage{acronym}
-\usepackage{minted}
+% Will use listings instead for now. minted isn't included in the ubuntu texlive version. \usepackage{minted}
 \usepackage{multirow}
 
-\renewcommand\theFancyVerbLine{\normalsize\arabic{FancyVerbLine}}
+% Added packages
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{hyperref} % for \url
+
+% only needed for \usepackage{fancyvrb}. \renewcommand\theFancyVerbLine{\normalsize\arabic{FancyVerbLine}}
+
+% Added config
+\setlength{\parskip}{0pt plus12pt minus4pt}
+\raggedbottom
 
 % Project Details
-\title{Database Access using a Filesystem}
-\author{Christopher Brown}
-\course{Computer Science}
-\project{4th Year Project Report}
+\title{Parallelising Plan Recognition}
+\author{Chris Swetenham}
+\course{MSc Artificial Intelligence}
+\project{Dissertation}
 
 \submityear{2012}
-\graduationdate{June 2012}
+\graduationdate{November 2012}
 \date{\today}
 
 \input{sections/misc/acronyms}

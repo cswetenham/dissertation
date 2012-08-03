@@ -140,7 +140,8 @@ figure~\ref{fig:fusefs}. This filesystem contains a single file called
 \texttt{hello.txt} which when read has the contents \texttt{Hello, World!}.
 
 \begin{figure}
-\begin{minted}[linenos]{ruby}
+% \begin{minted}[linenos]{ruby}
+\begin{lstlisting}
 class HelloDir
   def contents(path)
     ['hello.txt']
@@ -158,7 +159,8 @@ class HelloDir
     read_file(path).size
   end
 end
-\end{minted}
+%\end{minted}
+\end{lstlisting}
   \caption{A Sample \emph{FuseFS} filesystem.}
   \label{fig:fusefs}
 \end{figure}
@@ -207,7 +209,8 @@ quickly and easily. The library itself was an interesting program to write due
 to its implementation as a DSL.
 
 \begin{figure}
-\begin{minted}[linenos]{ruby}
+%\begin{minted}[linenos]{ruby}
+\begin{lstlisting}
 Filesystem.new "/mount/point" do
   directory "hello", :perms => [:r, :w] do
     file "path" do |path|
@@ -221,7 +224,8 @@ Filesystem.new "/mount/point" do
     end
   end
 end
-\end{minted}
+%\end{minted}
+\end{lstlisting}
   \caption{An example \emph{Skra} layout.}
   \label{fig:skra}
 \end{figure}
@@ -268,7 +272,8 @@ functionality. The entire system was named \emph{Squeal} as it was a Pig Latin
 for \ac{SQL}. An example query is shown in figure~\ref{fig:squeal}.
 
 \begin{figure}
-\begin{minted}[linenos]{ruby}
+%\begin{minted}[linenos]{ruby}
+\begin{lstlisting}
 users = Table :users
 grades = Table :grades
 
@@ -284,7 +289,8 @@ user_window = limit(user_where, 1)
 user_order = user_window.order(grades[:mark])
 
 Output select(user_grades, grades[:course], grades[:mark])
-\end{minted}
+%\end{minted}
+\end{lstlisting}
   \caption{A Squeal script for finding the course and mark for the lowest
   grade on record.}
   \label{fig:squeal}

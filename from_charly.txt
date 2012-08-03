@@ -1,0 +1,5 @@
+\setlength{\parskip}{0pt plus12pt minus4pt}
+\raggedbottom
+
+\usepackage{cite}
+\documentclass[12pt,twoside,abbrevs,msc,ai,notimes,logo,sansheadings]{infthesis}
