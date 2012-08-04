@@ -1,0 +1,382 @@
+%% LyX 2.0.0 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage{beramono}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage[all]{xy}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage[usenames,dvipsnames]{color}
+\xyoption{frame}
+
+\@ifundefined{showcaptionsetup}{}{%
+ \PassOptionsToPackage{caption=false}{subfig}}
+\usepackage{subfig}
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+
+\title{SSRM Homework 3}
+
+
+\author{Chris Swetenham (s1149322)}
+
+
+\date{March 22, 2012}
+
+\maketitle
+
+\section{Automated Driving}
+
+
+\subsection*{a)}
+
+We will consider the automated driving problem as a game at a single
+instant in time. The state will consist of:
+\begin{itemize}
+\item $d$ -- The distance between the robot driver and the car in front
+\item $v_{r}$ -- The velocity of the car on the right
+\item $\theta_{r}$ -- The heading of the car on the right
+\end{itemize}
+The payoffs for the robot driver will be -1000 in case of collision,
+-1 if we choose to Brake, 0 otherwise. We will not use an explicit
+utility for the driver on the right but they are trying to turn into
+the lane and avoid collision.
+
+The actions for the robot driver will be: Brake, or Nothing (keeping
+current speed). The actions for the driver on the right will be Accelerate,
+Turn, Signal, or Nothing.
+
+The driver in front will be treated as a random process rather than
+an agent, since a driver will not usually be expected to respond to
+the actions of the cars behind it, only in front of it and around
+it.
+
+The influence diagram is shown in Figure \ref{fig:1a}. Since we are
+only considering a single instant in time, we are ignoring a lot of
+the variables which take an effect over time, and only considering
+the several possible channels of information from the Human driver
+to the right, as well as our distance to the driver in front, all
+of which we observe with some noise. The Human makes some choice and
+we react to it and to the driver in front by choosing whether to Brake. 
+
+\begin{figure}[H]
+\centering{}$\xymatrix{ & *++[F]{Human}\ar[d]\\
+*++{d}\ar[dr]\ar[ur]\save"2,1"*\frm<8pt>{-}\restore & *++{v,\theta,s}\ar[d]\save"2,2"*\frm<8pt>{-}\restore\\
+ & *++[F]{Robot}\ar[d]\\
+ & *++[F=]{Outcome}
+}
+$\caption{Influence Diagram for Automated Driving}
+\label{fig:1a}
+\end{figure}
+
+
+
+\subsection*{b)}
+
+We will assign the following strategy to the human driver on the right:
+if it observes $d>d_{h}$ for some $d_{h}$ it will signal with probability
+$\frac{1}{2}$ and accelerate and turn with probability $\frac{1}{2}$.
+The car in front will continue to move at random speed and this is
+observed through the noisy variable $d$.
+
+As a decision tree formulation, since the Human's action depends on
+$d$, we want to have the node for $d$ at the root, then the nodes
+for the human's action, then the noisy observation, then finally the
+Robot's action and the outcome. We will show this only for the Turn
+action to make the diagram smaller. This is shown in Figure \ref{fig:1b}.
+If the robot observes a noisy signal and decides to brake or do nothing.
+
+\begin{figure}[H]
+\centering{}$\xymatrix{ & *++{d}\ar[d]\save"1,2"*\frm<8pt>{-}\restore\\
+ & *++[F]{Human}\ar[d]^{\theta}\\
+ & *++{\theta}\ar[d]\save"3,2"*\frm<8pt>{-}\restore\\
+ & *++[F]{Robot}\ar[dl]_{brake}\ar[dr]^{nothing}\\
+*++[F=]{Safe} &  & *++[F=]{Crash}
+}
+$\caption{Decision Diagram for Automated Driving}
+\label{fig:1b}
+\end{figure}
+
+
+
+\subsection*{c)}
+
+Figure \ref{fig:1b} shows an instance of the problem where the Human
+has decided. Since the Human has decided to turn, if the Robot decides
+to do nothing it will crash. The robot observes a noisy value of $\theta+\varepsilon$
+. The only type of instant-by-instant policy which would make sense
+is one which uses a threshold on the observed value, and if the direction
+is more than a certain threshold away from straight ahead, we will
+Brake. If $\theta_{k}$ is a threshold on the real heading that serves
+well to discriminate the actions Turn and Nothing by the driver, the
+best policy for the robot will include a safety margin due to the
+noise, and so brake if $\theta+\varepsilon>\theta_{k}-c\sigma_{\varepsilon}$.
+By varying $c$, we can control the relative probabilities of false
+positives or false negatives. The correct value of this threshold
+will be one that balances the negative reward of Braking and the negative
+utility of a Crash. \clearpage{}
+
+
+\section{Rock Paper Scissors}
+
+We give the matrix game and influence diagram for Rock, Paper, Scissors
+in Table \ref{tab:2a-1} and Figure \ref{fig:2a-1}. Each player makes
+a move without knowing the other player's move.
+
+\begin{center}
+\begin{table}[H]
+\begin{centering}
+\begin{tabular}{c|r>{\centering}p{0.01\textwidth}lr>{\centering}p{0.01\textwidth}lr>{\centering}p{0.01\textwidth}l}
+P1\textbackslash{}\textsuperscript{P2} & \multicolumn{3}{c}{Rock} & \multicolumn{3}{c}{Paper} & \multicolumn{3}{c}{Scissors}\tabularnewline
+\hline 
+Rock & 0 & , & 0 & -1 & , & 1 & 1 & , & -1\tabularnewline
+Paper & 1 & , & -1 & 0 & , & 0 & -1 & , & 1\tabularnewline
+Scissors & -1 & , & 1 & 1 & , & -1 & 0 & , & 0\tabularnewline
+\end{tabular}
+\par\end{centering}
+
+\caption{Matrix Game for Rock, Paper, Scissors}
+\label{tab:2a-1}
+\end{table}
+
+\par\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\begin{centering}
+$\xymatrix{*++[F]{Opponent\; Move}\ar[dr] &  & *++[F]{Player\; Move}\ar[dl]\\
+ & *++[F=]{Outcome}
+}
+$
+\par\end{centering}
+
+\caption{Influence Diagram for Rock, Paper, Scissors}
+\label{fig:2a-1}
+\end{figure}
+
+\par\end{center}
+
+We now fix the strategy of the opponent, shown in Figure \ref{fig:2a-2},
+and create the decision diagram, shown in Figure \ref{fig:2a-3}.
+Due to space contraints we don't expand the random node for the opponent
+move, but the opponent move nodes in fact should branch to all 3 possible
+moves with probabilities weighting each edge and the outcomes can
+be assigned a reward $[-1,0,1]$.
+
+\begin{center}
+\begin{figure}[H]
+\begin{centering}
+$\xymatrix{*++{Opponent\; Move}\ar[dr]\save"1,1"*\frm<8pt>{-}\restore &  & *++[F]{Player\; Move}\ar[dl]\\
+ & *++[F=]{Outcome}
+}
+$
+\par\end{centering}
+
+\caption{Influence Diagram for Rock, Paper, Scissors after setting opponent
+strategy}
+\label{fig:2a-2}
+\end{figure}
+
+\par\end{center}
+
+\begin{figure}[H]
+\begin{centering}
+$\xymatrix{ & *++[F]{Player\; Move}\ar[dl]^{r}\ar[d]^{p}\ar[dr]_{s}\\*
+++{Opponent\; Move}\ar[d]\save"2,1"*\frm<8pt>{-}\restore & *++{Opponent\; Move}\ar[d]\save"2,2"*\frm<8pt>{-}\restore & *++{Opponent\; Move}\ar[d]\save"2,3"*\frm<8pt>{-}\restore\\*
+++[F=]{Outcome} & *++[F=]{Outcome} & *++[F=]{Outcome}
+}
+$
+\par\end{centering}
+
+\caption{Influence Diagram for Rock, Paper, Scissors}
+\label{fig:2a-3}
+\end{figure}
+
+
+The optimal strategy given the opponent's strategy is a pure strategy:
+we simply pick the move with the highest expected return. Here the
+opponent's strategy is a mixed one, with $P(Rock)=0.25;\; P(Paper)=0.4;\; P(Scissors)=0.35$.
+
+$Q(Rock)=0\times P(Rock)+-1\times P(Paper)+1\times P(Scissors)=0.05$
+
+$Q(Paper)=1\times P(Rock)+0\times P(Paper)+-1\times P(Scissors)=-0.1$
+
+$Q(Scissors)=-1\times P(Rock)+1\times P(Paper)+0\times P(Scissors)=0.15$
+
+Our optimal strategy is to pick $Scissors$.
+
+We now perform fictitious plays for 5000 rounds with the above opponent
+strategy. We estimate the opponent's strategy based on observed moves
+in previous rounds. We graph the average reward over time, shown in
+Figure \ref{fig:2a-4}. The value converges to 0.15 as expected.
+
+\medskip{}
+
+
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={simGame.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{simGame.m}
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{q2a}
+\par\end{centering}
+
+\caption{Average Reward}
+\label{fig:2a-4}
+\end{figure}
+
+
+For the next part I am going to assume the payoffs of +1 go to the
+player and not the opponent, otherwise we do not have a very interesting
+problem. The results of running our algorithm for 1000 rounds with
+3 different values of p, the probability the opponent takes action
+1, are shown in Figure \ref{fig:2b}.
+
+\begin{center}
+\begin{table}[H]
+\begin{centering}
+\begin{tabular}{c|r>{\centering}p{0.01\textwidth}lr>{\centering}p{0.01\textwidth}l}
+P1\textbackslash{}\textsuperscript{P2} & \multicolumn{3}{c}{1} & \multicolumn{3}{c}{2}\tabularnewline
+\hline 
+1 & 1 & , & 0 & 0 & , & 0\tabularnewline
+2 & 0 & , & 0 & 1 & , & 0\tabularnewline
+\end{tabular}
+\par\end{centering}
+
+\caption{Matrix for second game}
+\label{tab:2b-1}
+\end{table}
+
+\par\end{center}
+
+\begin{figure}[H]
+\begin{centering}
+\begin{minipage}[t]{0.33\columnwidth}%
+\begin{center}
+\subfloat[$p=0.5$]{\includegraphics[width=1\textwidth]{q2b-1}}
+\par\end{center}%
+\end{minipage}%
+\begin{minipage}[t]{0.33\columnwidth}%
+\begin{center}
+\subfloat[$p=0.25$]{\includegraphics[width=1\textwidth]{q2b-2}}
+\par\end{center}%
+\end{minipage}%
+\begin{minipage}[t]{0.33\columnwidth}%
+\begin{center}
+\subfloat[$p=1.0$]{\includegraphics[width=1\textwidth]{q2b-3}}
+\par\end{center}%
+\end{minipage}
+\par\end{centering}
+
+\caption{Average Rewards}
+\label{fig:2b}
+\end{figure}
+
+
+\medskip{}
+
+
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={q2.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{q2.m}\clearpage{}
+
+
+\section{Rumour Spreading}
+
+
+\subsection*{a)}
+
+There is some ambiguity in the question - we could keep N constant
+and allow z to vary with our inital x and y, or keep z to 0 initially
+and allow N to vary according to x, y, z. I choose the former interpretation,
+since it gives us trajectories in the state space of the same system.
+We keep N constant and sample initial values of x and y such that
+$x+y<N+1$. As we see in Figure \ref{fig:q3a}, depending on the initial
+values the state can reach an equilibrium where 25 people will never
+hear the rumour, and the final number of people ignorant of the rumour
+does not easily reach all the way to 0.
+
+\medskip{}
+
+
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={rumourOde.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{rumourOde.m}
+
+\begin{figure}[H]
+\centering{}\includegraphics[width=0.8\textwidth]{q3a}\caption{State-space trajectories}
+\label{fig:q3a}
+\end{figure}
+
+
+
+\subsection*{b)}
+
+Starting from initial conditions $y=1$, $x=N=75$ with $\mu=0.75$,
+we run ode45 for 3 time units with a 0.001 unit timestep. The results
+are shown in Figure \ref{fig:q3b}. The starting point is at the right
+end, and the system comes to rest in the state at the left.
+
+\begin{figure}[H]
+
+
+\centering{}\includegraphics[width=0.8\textwidth]{q3b}\caption{State-space trajectory}
+\label{fig:q3b}
+\end{figure}
+
+
+
+\subsection*{c)}
+
+We vary the parameter $\mu$ and observe the effect on the system
+dynamics. In Figure \ref{fig:q3c-1} we see the result of setting
+$\mu=0.03$. The state trajectory is the same, but much slower, and
+the state does not reach equilibrium in 3 time units. In Figure \ref{fig:q3c-2}
+we see the result of setting $\mu=5.00$. The state trajectory is
+the same, but convergence happens faster, and the curve is a little
+less smooth as a result since fewer timesteps were spent in each section
+of the curve before reaching an equilibrium state.
+
+\begin{figure}[H]
+\centering{}%
+\begin{minipage}[t]{0.5\columnwidth}%
+\subfloat[$\mu=0.03$]{
+
+\begin{centering}
+\includegraphics[width=1\textwidth]{q3c-03}\label{fig:q3c-1}
+\par\end{centering}
+
+}%
+\end{minipage}%
+\begin{minipage}[t]{0.5\columnwidth}%
+\subfloat[$\mu=5.00$]{\centering{}\includegraphics[width=1\textwidth]{q3c-500}\label{fig:q3c-2}}%
+\end{minipage}\caption{Effect of varying $\mu$}
+\label{fig:q3c}
+\end{figure}
+
+
+\medskip{}
+
+
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={q3.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{q3.m}
+
+\clearpage{}
+
+
+\section*{Appendix A - Additional Code}
+
+\medskip{}
+
+
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={main.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{main.m}
+
+\medskip{}
+\lstinputlisting[basicstyle={\scriptsize\ttfamily},breaklines=true,caption={writeFigureEPS.m},captionpos=b,commentstyle={\color{OliveGreen}},frame=tb,language=Matlab]{writeFigureEPS.m}
+\end{document}

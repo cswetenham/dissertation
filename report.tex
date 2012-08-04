@@ -28,8 +28,8 @@
 \graduationdate{November 2012}
 \date{\today}
 
-\input{sections/misc/acronyms}
-\input{sections/misc/abstract}
+\input{sections/misc/i_acronyms}
+\input{sections/misc/ii_abstract}
 
 % Extra Package Commands
 
@@ -39,28 +39,28 @@
     \maketitle
 
     % Preamble
-    \input{sections/misc/acknowledgements}
+    \input{sections/misc/iii_acknowledgements}
     \standarddeclaration
-    %\input{sections/misc/dedication}
+    %\input{sections/misc/iv_dedication} TODO?
     \tableofcontents
     \listoffigures
   \end{preliminary}
 
   % Chapters
-  \input{sections/intro}
-  \input{sections/prior}
-  \input{sections/formulation}
-  \input{sections/design}
-  \input{sections/implementation}
-  \input{sections/evaluation}
-  \input{sections/conclusion}
+  \input{sections/01_intro}
+  \input{sections/02_prior}
+  \input{sections/03_formulation}
+  \input{sections/04_design}
+  \input{sections/05_implementation}
+  \input{sections/06_evaluation}
+  \input{sections/07_conclusion}
 
   % Appendix
   \appendix
 
-  \input{sections/appendix/evaluation.tex}
+  \input{sections/appendix/A_evaluation.tex}
 
   % Bibliography
-  \bibliography{/Users/cb/Documents/Project}{}
+  \bibliography{sections/misc/z_bib.tex}{}
   \bibliographystyle{unsrt}
 \end{document}
