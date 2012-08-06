@@ -1,0 +1,44 @@
+\chapter{Background}
+
+TODO
+
+\section{Plan Recognition}
+
+TODO discuss plan recognition and its potential applications
+TODO discuss plan recog is symbolic, how it fits into larger system (e.g. get symbols from behaviour recog, get grammars authored or learned (future work))
+
+\section{Combinatorial Categorical Grammars}
+
+TODO describe Categorical Grammars, Combinatorial Categorical Grammars
+
+\section{Applying CCGs to Plan Recognition}
+
+TODO
+
+\section{The ELEXIR Algorithm}
+
+TODO describe the ELEXIR algorithm
+
+\section{Concurrency Techniques}
+
+TODO describe locking and lock-free techniques
+TODO describe mutexes, condition variables
+TODO describe memory barriers, atomic operations, hazard pointers (or later?)
+TODO describe performance issues: waiting, kernel switches, busy waits, starvation, priority inversion, cache contention and false sharing
+TODO describe correctness issues: missed wake-ups, deadlocks, static/dynamic hazards, ABA problem, ...
+
+\section{Multicore Job Scheduling Techniques}
+
+TODO describe single queue
+TODO describe multiple queues with main thread redistributing work
+TODO describe work-stealing
+TODO reference that XB360/dev conf talk on job queues?
+TODO mention dependencies between tasks, tasks producing other tasks
+
+\section{Applying Job Scheduling Techniques to ELEXIR}
+
+TODO describe how ELEXIR is well-suited to job scheduling - tasks generate the new tasks that depend on them, pure fan-out with no dependencies sideways and no shared resources needing to be updated
+TODO describe how we choose to split work
+TODO Work out the complexity (Could go in appendix)
+
+TODO Work out the perfect $T_1$ to $T_\infty$ speedup (Could go in appendix)

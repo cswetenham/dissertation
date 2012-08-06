@@ -46,19 +46,127 @@
     \listoffigures
   \end{preliminary}
 
+% Sides per Section (Planned)
+% ---------------------------
+% Title page 1
+% Blank 1
+% Abstract 1
+% Acknowledgements 1
+% Declaration 1
+% Blank 1
+% TOC 2
+% List of Figures 1
+% Blank 1
+% Intro 1
+% Blank 1
+% Background 8
+% Related Work 1
+% Blank 1
+% Initial Work 3
+% Blank 1
+% Method 0 1
+% Blank 1
+% Method 1 2
+% Method 2 3
+% Blank 1
+% Method 3 4
+% Method 4 2
+% Analysis 3
+% Blank 1
+% Conclusion 1
+% Bibliography 2
+% --------------
+% Total 47
+
+  
   % Chapters
+  % Introduction: background to the project, previous work, exposition of relevant literature, setting of the work in the proper context.
   \input{sections/01_intro}
-  \input{sections/02_prior}
-  \input{sections/03_formulation}
-  \input{sections/04_design}
-  \input{sections/05_implementation}
+  \input{sections/02_background}
+  \input{sections/03_related}
+  % Description of the work undertaken: this may be divided into chapters describing the conceptual design work and the actual implementation separately. Any problems or difficulties and the suggested solutions should be mentioned. Alternative solutions and their evaluation should be included.
+  \chapter{Initial Work}
+  TODO describe initial work fixing memory leaks, fixing reference counting
+  
+  TODO describe tests added
+  
+  TODO describe work making ref counting thread-safe and why we don't need hazard pointers for categories
+  
+  TODO describe the tools and libraries used: boost::threads, valgrind, callgrind/cachegrind
+  
+  TODO describe histogram of number of generated explanations for each existing one, and how this informs design choices
+  
+  \chapter {Method 0 - Original Single-Threaded ELEXIR}
+  TODO - short description of design.
+  \section {Implementation}
+  TODO - Describe implementation.
+  \section{Evaluation}
+  \subsection{XPERIENCE Domain}
+  TODO
+  \subsection{Logistics Domain}
+  TODO
+  \section{Analysis}
+  TODO
+  
+  \chapter {Method 1 - One Thread Per Task}
+  TODO - short description of design. Spawn a thread for each explanation, showing that multithreading the computation works.
+  \section {Implementation}
+  TODO - Describe implementation.
+  \section{Evaluation}
+  \subsection{XPERIENCE Domain}
+  TODO
+  \subsection{Logistics Domain}
+  TODO
+  \section{Analysis}
+  TODO
+  \chapter {Method 2 - One Queue Per Thread}
+  TODO - short description of design. One queue per thread, main thread redistributes.
+  \section {Implementation}
+  TODO - Describe implementation. Phases, detecting completion, blocking and signalling on the queue.
+  \section{Evaluation}
+  \subsection{XPERIENCE Domain}
+  TODO
+  \subsection{Logistics Domain}
+  TODO
+  \section{Analysis}
+  TODO
+  \chapter {Method 3 - Lock-Free Work-Stealing}
+  TODO - short description of design. Spawn a thread for each explanation, showing that multithreading the computation works.
+  \section {Implementation}
+  TODO - Describe implementation. Insertion of memory barriers. Hazard pointers and resizing. Expected properties in terms of load-balancing.
+  \section{Evaluation}
+  \subsection{XPERIENCE Domain}
+  TODO
+  \subsection{Logistics Domain}
+  TODO
+  \section{Analysis}
+  TODO
+  \chapter {Method 4 - Single Global Queue}
+  TODO - short description of design. Single global queue, locking.
+  \section {Implementation}
+  TODO - Describe implementation.
+  \section{Evaluation}
+  \subsection{XPERIENCE Domain}
+  TODO
+  \subsection{Logistics Domain}
+  TODO
+  \section{Analysis}
+  TODO
+  
+  % \input{sections/04_design}
+   
+  % \input{sections/05_implementation}
+  
+  % Analysis: results and their critical analysis should be reported, whether the results conform to expectations or otherwise and how they compare with other related work.
+  
   \input{sections/06_evaluation}
+  % Conclusion:
   \input{sections/07_conclusion}
 
   % Appendix
   \appendix
 
-  \input{sections/appendix/A_evaluation.tex}
+  % \input{sections/appendix/A_evaluation.tex}
 
   % Bibliography
   \bibliography{sections/misc/z_bib.tex}{}
