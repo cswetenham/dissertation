@@ -1,23 +1,74 @@
 \chapter{Background}
 
-TODO
+In this section, we discuss the background for the project and provide context for the work performed.
 
 \section{Plan Recognition}
 
-TODO discuss plan recognition and its potential applications
-TODO discuss plan recog is symbolic, how it fits into larger system (e.g. get symbols from behaviour recog, get grammars authored or learned (future work))
+Plan Recognition looks at a sequence of actions by an agent, and attempts to deduce that agent's goals. Plan Recognition can be seen as the inverse of Planning, where given a goal the problem is to deduce a sequence of actions which achieve it. Plan Recognition operates symbollically [TODO: is there any work on non-symbolic plan recognition?]; the actions observed are treated as symbols, and the rules operating on them operate on these symbols.
 
-\section{Combinatorial Categorical Grammars}
+There are many possible situations where it is desirable to recognise the intentions of an agent from its observed actions. In network intrusion detection, we wish to identify any actions which could correspond to an attack, hidden in a large number of benign actions by users, in real time. [TODO: cite ?] In human-robot interaction, we wish a human and a robot to work together on a task. If the robot partner can observe the actions of the human partner, and from them understand what the human partner is currently trying to achieve, it can anticipate the needs of the human partner, and assist or offer advice. [TODO: cite JAST project]. In assisted care scenarios, a robot can again anticipate the needs of the human being assisted; it can also recognise unusual behaviour which would necessitate emergency response. [TODO: cite ?]
 
-TODO describe Categorical Grammars, Combinatorial Categorical Grammars
+Since Plan Recognition takes symbolic input, some amount of transformation of the input may be required. For network intrusion detection, this could be a simple filter on system logs. For more complex scenarios, Plan Recognition could tie in to Behaviour Recognition, which takes video and other real-time feeds and classifies the actions taken by humans using machine learning techniques.
+
+Plan Recognition is usually performed in terms of some grammar for actions and goals. This grammar could be learned or crafted by the designer; in this project, we use two grammars crafted by hand.
+
+\section{Combinatory Categorial Grammars}
+
+The problem of parsing, where we analyse a sequence of tokens and produce a syntax tree according to a formal grammar, is very similar to the problem of plan recognition, so it is natural to consider the applicability of parsing techniques to this problem.
+
+When parsing computer languages such as XML or C++, ambiguity is undesirable. An input text should admit to either a single interpretation or no interpretation at all, and it is the task of the language designer to resolve any possible ambiguities in the grammar.
+
+When parsing natural languages such as English, a degree of ambiguity is unavoidable; in fact, such ambiguity can be exploited by speakers, for example in puns. Correspondingly, grammars and parsers for natural language must deal with potential ambiguity and multiple possible parses. Therefore, we can expect parsing techniques from natural language processing may be more amenable to being adapted to the problem of Plan Recognition.
+
+Categorial Grammars assign \em{categories} to each input token or symbol, and combine them according to simple application rules in a function-argument relationship. \em{Basic} categories correspond to lexical classes such as ``identifier'' in a computer language or ``noun'' in a natural language. We denote basic categories by atomic terms such as $N$. \em{Complex} categories are akin to functions over categories: they look for arguments directly to their left (denoted $\backslash$) or right (denoted $/$) in the sequence of categories, and yield other categories as a result. A complex category taking an argument $N$ to its left and yielding $NP$ is denoted $NP\backslash N$; one taking the same argument to the right is denoted $NP/N$. [TODO footnote: some sources denote the leftward example above as $N\backslash NP$, preserving the ordering of the argument and result. For consistency we will always denote the arguments on the right and the results on the left.]
+
+Taking a simple example in English: [TODO footnote: this example is taken from en.wikipedia.org\/wiki\/Categorial\_grammar, retrieved 8 August 2012]
+
+English sentence: ``the bad boy made that mess''
+
+Basic categories:
+[TODO: layout]
+N - noun
+NP - noun phrase
+S - sentence
+
+We then assign basic or complex categories to each word:
+
+$$
+{\text{the}\atop {NP/N,}}
+{\text{bad}\atop {N/N,}}
+{\text{boy}\atop {N,}}
+{\text{made}\atop {(S \backslash NP)/NP,}}
+{\text{that}\atop {NP/N,}}
+{\text{mess}\atop {N}}
+$$
+
+We can then combine the complex categories with their arguments and produce a parse. 
+TODO: LaTeX for parse tree
+
+Combinatory Categorial Grammars (hereafter \ac{CCG}s) extend categorial grammars with new reductions corresponding to combinators in the combinator calculus. Since complex categories can take arguments either to their left or right, each combinator has a leftward and a rightward version.
+
+The leftward and rightward application combinators are the reductions already present in categorial grammars. The other two combinators commonly used in CCGs are composition and type-raising.
+
+Composition corresponds to function composition. The rightward composition operation has the form: $X/Z \leftarrow X/Y, Y/Z$. TODO: more explanation
+
+Type-raising transforms basic categories to complex categories. The rightward type-raising operation has the form: $T/(T\backslash X) \leftarrow X$. TODO: more explanation
 
 \section{Applying CCGs to Plan Recognition}
 
-TODO
+The constraints on the ordering of actions in a plan are looser than the constraints on the ordering of words in natural language. Correspondingly, we make some modifications to the \ac{CCG} formalism to apply it to Plan Recognition.
+
+Firstly, it is possible for intervening actions to occur which are not part of the current goal; they may be part of some other goal, or entirely irrelevant to the goals we are interested in. We therefore allow complex categories to find their arguments anywhere to the left (for leftward-applying categories) or to the right (for rightward-applying categories), rather than directly to the left or right.
+
+Secondly, certain actions to achieve a goal may in certain cases be executed in any order with equal results. Although this could be expressed in the \ac{CCG} formalism, by including every possible permutation in the grammar, it is preferable to allow complex categories to take sets of arguments which may be provided in any order. This is denoted as $A/{B, C}$ for a complex category taking arguments $B$ and $C$ to the right in any order, and yielding $A$.
 
 \section{The ELEXIR Algorithm}
 
 TODO describe the ELEXIR algorithm
+TODO choice of combinators
+TODO state predicates
+TODO probabilities
+TODO features and bindings
 
 \section{Concurrency Techniques}
 
