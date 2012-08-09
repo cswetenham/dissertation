@@ -43,14 +43,20 @@ $$
 {\text{mess}\atop {N}}
 $$
 
-We can then combine the complex categories with their arguments and produce a parse. 
-TODO: LaTeX for parse tree
+We can then combine the complex categories with their arguments and produce a parse. Combining the categories follows the rules: $ X\leftarrow X/Y,\; Y$ and $ X\leftarrow Y,\; X\backslash Y$:\\
+$.\qquad NP/N,\; N/N,\; N,\; (S\backslash NP)/NP,\; \underbrace{NP/N,\; N}$\\
+$.\qquad NP/N,\; N/N,\; N,\; \underbrace{(S\backslash NP)/NP, \quad NP}$\\
+$.\qquad NP/N,\; \underbrace{N/N,\; N}, \qquad (S\backslash NP)$\\
+$.\qquad \underbrace{NP/N,\; \quad N},\; \qquad (S\backslash NP)$\\
+$.\qquad \qquad\underbrace{NP,\; \qquad (S\backslash NP)}$\\
+$.\qquad \qquad\qquad\quad\;\;\; S$
+
 
 Combinatory Categorial Grammars (hereafter \ac{CCG}s) extend categorial grammars with new reductions corresponding to combinators in the combinator calculus. Since complex categories can take arguments either to their left or right, each combinator has a leftward and a rightward version.
 
 The leftward and rightward application combinators are the reductions already present in categorial grammars. The other two combinators commonly used in CCGs are composition and type-raising.
 
-Composition corresponds to function composition. The rightward composition operation has the form: $X/Z \leftarrow X/Y, Y/Z$. TODO: more explanation
+Composition corresponds to function composition. The rightward composition operation has the form: $X/Z \leftarrow X/Y,\;  Y/Z$. TODO: more explanation
 
 Type-raising transforms basic categories to complex categories. The rightward type-raising operation has the form: $T/(T\backslash X) \leftarrow X$. TODO: more explanation
 
