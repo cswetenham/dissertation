@@ -33,8 +33,12 @@ namespace :check do
 
   desc "Spell check the document"
   task :spell do
-    puts "Checking the file for spelling mistakes... [#{TEX_NAME}]"
-    aspell "check", "--mode=tex", TEX_NAME
+    ['*.tex', 'sections/*.tex', 'sections/misc/*.tex', 'sections/appendix/*.tex'].each do |pat|
+      Dir.glob(pat) do |file|
+        puts "Checking the file for spelling mistakes... [#{file}]"
+        aspell "check", "--mode=tex", file
+      end
+    end
   end
 end
 
