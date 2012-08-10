@@ -94,9 +94,15 @@
   We considered several possible libraries for implementing multithreading. We chose the \emph{Boost Threads} library, which is part of the \emph{Boost} project, over the POSIX threading API for reasons of both convenience and portability; although the code has not yet been ported entirely to Windows, the added code was designed with this future port in mind.
   
   \chapter {Method 0 - Original Single-Threaded ELEXIR}
-  TODO - short description of design.
+  
+  The first method we include for comparaison is a mostly unmodified single-threaded implementation.
+  
   \section {Implementation}
-  TODO - Describe implementation.
+  
+  On each new observation, the entire current list of explanations is looped over by the main thread, and a new list of explanations is generated.
+  
+  [TODO: code snippet]
+  
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
@@ -106,9 +112,15 @@
   TODO
   
   \chapter {Method 1 - One Thread Per Task}
-  TODO - short description of design. Spawn a thread for each explanation, showing that multithreading the computation works.
+  
+  As a proof of concept for multithreading the algorithm, this method spawns a new thread for each task.
+  
   \section {Implementation}
-  TODO - Describe implementation.
+  
+  On each new observation,  the main thread spawns a new thread for each task. Each task processes its expressions and produces new resulting expressions. The main thread waits for all the spawned threds to complete, and collects their results, then spawns a new set of threads on the next observation.
+  
+  [TODO: code snippet]
+  
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
@@ -116,10 +128,19 @@
   TODO
   \section{Analysis}
   TODO
+  
   \chapter {Method 2 - One Queue Per Thread}
-  TODO - short description of design. One queue per thread, main thread redistributes.
+  
+  This method uses one queue per thread, guarded by a mutual exclusion lock.
+  
   \section {Implementation}
-  TODO - Describe implementation. Phases, detecting completion, blocking and signalling on the queue.
+  
+  The main thread creates a queue for each worker thread, then spawns the threads. On each new observation, the main thread partitions the work evenly between the worker thread queues, and waits for them to finish processing them, finally collecting the new explanations.
+  
+  TODO - Describe blocking and signalling on the queue.
+  TODO - Describe detecting completion.
+  TODO - Describe boost::bounded\_buffer.
+  
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
@@ -127,10 +148,15 @@
   TODO
   \section{Analysis}
   TODO
+  
   \chapter {Method 3 - Lock-Free Work-Stealing}
-  TODO - short description of design. Spawn a thread for each explanation, showing that multithreading the computation works.
+  
+  This method uses one lock-free queue for each worker thread. Other threads can steal from this queue if they run out of work in their own queue.
+  
   \section {Implementation}
+  
   TODO - Describe implementation. Insertion of memory barriers. Hazard pointers and resizing. Expected properties in terms of load-balancing.
+  
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
@@ -138,10 +164,17 @@
   TODO
   \section{Analysis}
   TODO
+  
   \chapter {Method 4 - Single Global Queue}
-  TODO - short description of design. Single global queue, locking.
+  
+  This method uses a single global queue of tasks, guarded by a mutual exclusion lock.
+  
   \section {Implementation}
-  TODO - Describe implementation.
+  
+  The main thread adds a single empty explanation to the global queue, then spawns a worker thread for each hardware thread available. These threads all attempt to lock the queue and extract work from it. If they cannot lock the queue, they sleep until the lock becomes available. If they lock the queue and find it empty, they sleep for a fixed period of time, then try again. Once they complete the task, they lock the queue to put all the newly generated work on the queue, then resume trying to pull a task from the head of the queue.
+  
+  [TODO: code snippet]
+  
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
