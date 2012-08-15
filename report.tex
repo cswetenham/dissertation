@@ -12,6 +12,9 @@
 \usepackage{listings}
 \usepackage{hyperref} % for \url
 \usepackage{amstext} % for \text
+\usepackage{subcaption} % for \subfloat
+\usepackage{epstopdf} % for eps images
+% \usepackage{beramono} % for bera mono font
 
 % only needed for \usepackage{fancyvrb}. \renewcommand\theFancyVerbLine{\normalsize\arabic{FancyVerbLine}}
 
@@ -95,13 +98,17 @@
   
   The executable compiled for evaluation runs takes as parameters the domain and problem files to be processed. In addition, command-line arguments allow specifying the number of explanations to allocate in each task, and the maximum number of worker threads to spawn. Except in Method 1, it will never spawn more worker threads than there are hardware threads available.
   
-  The code for this project was developed using Boost version 1.46.1 on Ubuntu Linux 12.04 64-bit, and also tested and run using Boost version 1.41 on Scientific Linux 6.2. The machines used for evaluation are Sherlock, a 4-core Intel i5 machine with 8GB of memory running the Ubuntu configuration, and Catzilla, a 16-core AMD Opteron machine with 64GB of memory running the Scientific Linux configuration.
+  The code for this project was developed using Boost version 1.46.1 on Ubuntu Linux 12.04 64-bit, and also tested and run using Boost version 1.41 on Scientific Linux 6.2. The machines used for evaluation are Sherlock, a 4-core Intel i5 desktop PC with 8GB of memory running the Ubuntu configuration, and Catzilla, a 16-core AMD Opteron multi-user server with 64GB of memory running the Scientific Linux configuration.
   
   Boost 1.46.1 is the currently packaged version of Boost on Ubuntu 12.04. Unfortunately it suffers from an occasional deadlock issue due to locking order when a sleeping thread is interrupted by calling boost::thread::interrupt(). We encountered this issue during development which for certain build configurations and datasets would very reliably cause deadlocks. Interruption was being used to exit threads when processing was complete. Interruption causes an exception to be thrown in the interrupted thread; we replaced calls to thread::interrupt() with a task that throws this exception when invoked. The entry function of the worker thread then catches this exception and exits the thread.
   
+  Each algorithm is implemented with a similar structure: a class encapsulates the algorithm, and is instantiated based on the selected algorithm for each run. This class has a method which is called on the main thread, and creates the worker threads. Each of the threads runs a static method on the class, which interacts with a \texttt{WorkerData} structure containing the queues or other relevant information. The worker thread method is mostly independent of the nature of the work being done. Finally, tasks are represented by a \texttt{TaskData} structure which contains the expressions for the task, and any other relevant data. This structure has a method which is passed a pointer to the \texttt{WorkerData}, processes the expressions, and passes the results back into new tasks or to the main thread.
+  
+  The two problem domains used for evaluation are the XPERIENCE domain, which involves hands picking up and moving balls around and into cups, and is based on the XPERIENCE robotics project [TODO: cite]; and the Logistics domain, which involves trucks and airplanes transporting packages between cities, and is based on the Logistics domain in the First International Planning Competition [TODO: cite].
+  
   \chapter {Method 0 - Original Single-Threaded ELEXIR}
   
-  The first method we include for comparaison is a mostly unmodified single-threaded implementation.
+  The first method we include for comparison is a mostly unmodified single-threaded implementation.
   
   \section {Implementation}
   
@@ -111,64 +118,111 @@
   
   \section{Evaluation}
   
-  \subsection{XPERIENCE Domain}
-  TODO
+  Since this method does not scale with the number of threads, we will report baseline performance numbers, shown in Table~\ref{tab:m0}.
   
-  \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-0-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads (ignored) on Sherlock, Method 0, XPERIENCE domain}
-  % \label{}
-  \end{figure}
-  
-  \subsection{Logistics Domain}
-  TODO
-  
-  \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-0-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads (ignored) on Sherlock, Method 0, Logistics domain}
-  % \label{}
-  \end{figure}
-  \section{Analysis}
-  TODO
-  
+  \begin{table}
+  \begin{tabular}{c c c}
+  Domain & Sherlock Runtime (seconds) & Catzilla Runtime (seconds)\tabularnewline
+  \hline
+  XPERIENCE Domain & 5.63 & 14.67\tabularnewline
+  Logistics Domain & 1.36 & TODO\tabularnewline
+  \hline
+  \end{tabular}
+  \caption{Average Runtimes for Method 0}
+  \label{tab:m0}
+  \end{table}
+
   \chapter {Method 1 - One Thread Per Task}
   
   As a proof of concept for multithreading the algorithm, this method spawns a new thread for each task, one task per hardware thread up to the thread limit.
   
   \section {Implementation}
   
-  On each new observation,  the main thread spawns a new thread for each task, equal to the number of hardware threads available or the thread limit. Each task processes its explanations and produces new resulting explanations. The main thread waits for all the spawned threds to complete, and collects their results, then spawns a new set of threads on the next observation. This implementation ignores the batch size parameter and partitions the explanations evenly between tasks.
+  On each new observation,  the main thread spawns a new thread for each task, equal to the number of hardware threads available or the thread limit. Each task processes its explanations and produces new resulting explanations. The main thread waits for all the spawned threads to complete, and collects their results, then spawns a new set of threads on the next observation. This implementation ignores the batch size parameter and partitions the explanations evenly between tasks.
   
   [TODO: code snippet]
   
   \section{Evaluation}
-  \subsection{XPERIENCE Domain}
-  TODO
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-1-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 1, XPERIENCE domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-1-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-1-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 1, XPERIENCE domain}
+  \label{fig:thread-s1x}
   \end{figure}
-  
-  \subsection{Logistics Domain}
-  TODO
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-1-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 1, Logistics domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-1-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-1-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 1, Logistics domain}
+  \label{fig:thread-s1l}
   \end{figure}
-  \section{Analysis}
-  TODO
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-1-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-1-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, XPERIENCE domain}
+  \label{fig:thread-c1x}
+  \end{figure}
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-1-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-1-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, Logistics domain}
+  \label{fig:thread-c1l}
+  \end{figure}
   
   \chapter {Method 2 - One Queue Per Thread}
   
@@ -185,27 +239,87 @@
   This implementation does not take into account the batch size parameter, since the main thread is responsible for redistributing the work. The main thread creates as task for each worker thread and splits the explanation to be processed evenly between them.
   
   \section{Evaluation}
-  \subsection{XPERIENCE Domain}
-  TODO
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-2-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 2, XPERIENCE domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-2-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-2-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 2, XPERIENCE domain}
+  \label{fig:thread-s2x}
   \end{figure}
-  
-  \subsection{Logistics Domain}
-  TODO
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-2-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 2, Logistics domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-2-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-2-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 2, Logistics domain}
+  \label{fig:thread-s2l}
   \end{figure}
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-2-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-2-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, XPERIENCE domain}
+  \label{fig:thread-c2x}
+  \end{figure}
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-2-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-2-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 2, Logistics domain}
+  \label{fig:thread-c2l}
+  \end{figure}
+  
   \section{Analysis}
   TODO
   
@@ -229,34 +343,93 @@
   
   \begin{figure}[!htbp]
   \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/batch-xper5-sherlock-3-1}
+  \includegraphics[width=0.8\textwidth]{{{images/batch-xper5-sherlock-3-1}}}
   \par\end{centering}
-  \caption{Work-Stealing Runtime with varying batch size on Sherlock, XPERIENCE domain}
+  \caption{Runtime with varying batch size on Sherlock, Method 3, XPERIENCE domain}
   \label{fig:batch-3}
   \end{figure}
   
   We can see in Figure~\ref{fig:batch-3} that the batch size does not significantly affect the runtime for this algorithm. All further tests were performed with a batch size of 8.
   
-  \subsection{XPERIENCE Domain}
-  TODO
-  
+  \subsection{Thread Count}
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-3-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 3, XPERIENCE domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-3-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-3-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 3, XPERIENCE domain}
+  \label{fig:thread-s3x}
   \end{figure}
   
-  \subsection{Logistics Domain}
-  TODO
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-3-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-3-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 3, Logistics domain}
+  \label{fig:thread-s3l}
+  \end{figure}
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-3-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 3, Logistics domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-3-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-3-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 3, XPERIENCE domain}
+  \label{fig:thread-c3x}
+  \end{figure}
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-3-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-3-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 3, Logistics domain}
+  \label{fig:thread-c3l}
   \end{figure}
   
   \section{Analysis}
@@ -288,26 +461,85 @@
   
   We can see in Figure~\ref{fig:batch-4} that the batch size parameter does have an effect on the runtime of this algorithm, suggesting that contention for the lock is worse with small tasks leading for more frequent insertions and removals on the global queue. In this test the runtime is similar from 8 explanations per batch upward, so all further tests were performed with a batch size of 8.
   
-  \subsection{XPERIENCE Domain}
-  TODO
-  
-  \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-4-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 4, XPERIENCE domain}
-  % \label{}
+  \subsection{Thread Count}
+  T\begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-4-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-sherlock-4-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 4, XPERIENCE domain}
+  \label{fig:thread-s4x}
   \end{figure}
   
-  \subsection{Logistics Domain}
-  TODO
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-4-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-sherlock-4-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 4 threads on Sherlock, Method 4, Logistics domain}
+  \label{fig:thread-s4l}
+  \end{figure}
   
   \begin{figure}[!htbp]
-  \begin{centering}
-  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-4-1}
-  \par\end{centering}
-  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 4, Logistics domain}
-  % \label{}
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-4-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-xper5-catzilla.inf.ed.ac.uk-4-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 4, XPERIENCE domain}
+  \label{fig:thread-c4x}
+  \end{figure}
+  
+  \begin{figure}[!htbp]
+  \centering{}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Runtime]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-4-1}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \begin{minipage}[t]{0.49\columnwidth}
+  \subfloat[Throughput]{
+    \begin{centering}
+    \includegraphics[scale=0.40]{{{images/threads-log3-catzilla.inf.ed.ac.uk-4-2}}}
+    \end{centering}
+  }
+  \end{minipage}
+  \caption{Runtime with 1 to 16 threads on Catzilla, Method 4, Logistics domain}
+  \label{fig:thread-c4l}
   \end{figure}
   
   \section{Analysis}

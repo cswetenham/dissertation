@@ -23,39 +23,47 @@ When parsing a sequence of actions into possible explanations, a degree of ambig
 
 % TODO used to say ``directly'' to their left or right - still want to make that distinction?
 
-Categorial Grammars assign \emph{categories} to each input token or symbol, and combine them according to simple rules. \emph{Basic} categories correspond to lexical classes such as ``identifier'' in a computer language or ``noun'' in a natural language. We denote basic categories by atomic terms such as $A$. \emph{Complex} categories are akin to functions over categories: they look for arguments to their left (denoted $\backslash$) or right (denoted $/$) in the sequence of categories, and yield other categories as a result. A complex category taking an argument $A$ to its left and yielding $B$ is denoted $B\backslash A$; one taking the same argument to the right is denoted $B/A$. [TODO footnote: some sources denote the leftward example above as $A\backslash B$, preserving the ordering of the argument and result. For consistency we will always denote the arguments on the right and the results on the left.]
+Categorial Grammars assign \emph{categories} to each input token or symbol, and combine them according to simple rules. \emph{Basic} categories correspond to lexical classes such as ``identifier'' in a computer language or ``noun'' in a natural language. We denote basic categories by atomic terms such as $A$. \emph{Complex} categories are akin to functions over categories: they look for arguments to their left (denoted $\backslash$) or right (denoted $/$) in the sequence of categories, and yield other categories as a result. A complex category taking an argument $A$ to its left and yielding $B$ is denoted $B\backslash A$; one taking the same argument to the right is denoted $B/A$. \footnote{Some sources denote the leftward example above as $A\backslash B$, preserving the ordering of the argument and result. For consistency we will always denote the arguments on the right and the results on the left.}
 
-Taking a simple example in English:\\
+Taking a simple example from the Logistics domain:
 
-[TODO: replace with an example parse from the XPERIENCE or logistics domains]\\
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  frame=tb
+}
 
-English sentence: ``the bad boy made that mess''
+\begin{lstlisting}
+observations: [
+  loadTruck(p0, t0, c1),
+  driveTruck(t0, c1, c0),
+  unloadTruck(p0, t0, c0)
+];
+\end{lstlisting}
 
-Basic categories:\\
-N - noun\\
-NP - noun phrase\\
-S - sentence\\
+We have three observations: package \texttt{p0} is loaded into truck \texttt{t0} at location \texttt{c1}, the truck drives to location \texttt{c0}, and the package is unloaded there. We then assign basic or complex categories to each observation:
 
-We then assign basic or complex categories to each word:
-
-$$
-{\text{the}\atop {NP/N,}}
-{\text{bad}\atop {N/N,}}
-{\text{boy}\atop {N,}}
-{\text{made}\atop {(S \backslash NP)/NP,}}
-{\text{that}\atop {NP/N,}}
-{\text{mess}\atop {N}}
-$$
-
-We can then combine the complex categories with their arguments and produce a parse. Combining the categories follows the rules: $ X\leftarrow X/Y,\; Y$ and $ X\leftarrow Y,\; X\backslash Y$:\\
-$.\qquad NP/N,\; N/N,\; N,\; (S\backslash NP)/NP,\; \underbrace{NP/N,\; N}$\\
-$.\qquad NP/N,\; N/N,\; N,\; \underbrace{(S\backslash NP)/NP, \quad NP}$\\
-$.\qquad NP/N,\; \underbrace{N/N,\; N}, \qquad (S\backslash NP)$\\
-$.\qquad \underbrace{NP/N,\; \quad N},\; \qquad (S\backslash NP)$\\
-$.\qquad \qquad\underbrace{NP,\; \qquad (S\backslash NP)}$\\
-$.\qquad \qquad\qquad\quad\;\;\; S$
+\begin{lstlisting}
+loadTruck(p0, t0, c1) :
+  inTruckC(p0, t0)
+driveTruck(t0, c1, c0) :
+  (deliverPkgC(o, c0)/notInTruckC(o, t0))\inTruckC(obj, t0)o
+unloadTruck(p0, t0, c0) :
+  notInTruckC(p0, t0)
+\end{lstlisting}
 
 
+We can then combine the complex categories with their arguments and produce a parse. Combining the categories follows the rules: $ X\leftarrow X/Y,\; Y$ and $ X\leftarrow Y,\; X\backslash Y$. Note that package \texttt{o} is unbound until the complex category is unified with an argument.
+
+\noindent\rule{\textwidth}{0.4pt}
+{\ttfamily\scriptsize
+$\underbrace{\text{inTruckC(p0, t0)},\quad \text{(deliverPkgC(o, c0)}/\text{notInTruckC(obj, t0))}\backslash{}\text{inTruckC(o, t0)}},\quad \text{notInTruckC(p0, t0)}$\\
+$\hspace*{10em}\underbrace{\text{deliverPkgC(p0, c0)}/\text{notInTruckC(p0, t0)},\hspace*{9em}\text{notInTruckC(p0, t0)}}$\\
+$\hspace*{24em} \text{deliverPkgC(p0, c0)}$
+}\\
+\noindent\rule{\textwidth}{0.4pt}
+
+We reduce the input to an explanation consisting of a single basic category, \texttt{deliverPkgC(p0, c0)}.
 \emph{Combinatory Categorial Grammars} (CCGs) extend categorial grammars with new reductions corresponding to combinators in combinatory logic. Since complex categories can take arguments either to their left or right, each combinator has a leftward and a rightward version.
 
 The leftward and rightward application combinators are the reductions already present in categorial grammars. The other two combinators commonly used in CCGs are composition and type-raising.
@@ -104,6 +112,3 @@ The final case we will examine is a lock-free work-stealing scheduler, with one 
 \section{Applying Task Scheduling Techniques to ELEXIR}
 
 In the ELEXIR algorithm, each existing explanation is processed independently when a new action is added to the observations. Each explanation generates one or more new explanations, with no dependencies on other computations. This makes ELEXIR well suited to parallelising using task scheduling. We can assign to each task some number of explanations, depending on the overhead of the method we are using.
-
-[TODO Work out the complexity (Could go in appendix)]
-[TODO Work out the perfect $T_1$ to $T_\infty$ speedup (Could go in appendix)]
