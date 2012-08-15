@@ -89,9 +89,15 @@
   \chapter{Initial Work}
   Before starting with the implementation of multithreading, we evaluated the existing ELEXIR codebase to detect any potential issues. We used the \emph{Memcheck} tool within the \emph{Valgrind} program on Linux to detect memory leaks which we then fixed. Valgrind dynamically translates the machine code being executed and allows its tools to insert instrumentation before the code is actually executed. Memcheck tracks memory allocations and can warn of both memory leaks and invalid memory accesses.
   
-  The reference-counting was changed to use atomic incrementing and decrementing of reference counts, and this was sufficient to ensure thread safety, since threads incrementing the reference count always own at least one reference to it through the expression currently being processed. In order to verify that the changes made to the code did not break existing functionality, we added tests for the results of the algorithm on one of the domains. We also added unit tests for some of the new functionality.
+  The reference-counting was changed to use reference-counting smart pointers rather than the manual incrementing and decrementing initially present. This helped fix a number of memory leaks. It was also modified to use atomic incrementing and decrementing of reference counts, and this was sufficient to ensure thread safety, since threads incrementing the reference count always own at least one reference to it through the explanation currently being processed. In order to verify that the changes made to the code did not break existing functionality, we added tests for the results of the algorithm on one of the domains. We also added unit tests for some of the new functionality.
   
   We considered several possible libraries for implementing multithreading. We chose the \emph{Boost Threads} library, which is part of the \emph{Boost} project, over the POSIX threading API for reasons of both convenience and portability; although the code has not yet been ported entirely to Windows, the added code was designed with this future port in mind.
+  
+  The executable compiled for evaluation runs takes as parameters the domain and problem files to be processed. In addition, command-line arguments allow specifying the number of explanations to allocate in each task, and the maximum number of worker threads to spawn. Except in Method 1, it will never spawn more worker threads than there are hardware threads available.
+  
+  The code for this project was developed using Boost version 1.46.1 on Ubuntu Linux 12.04 64-bit, and also tested and run using Boost version 1.41 on Scientific Linux 6.2. The machines used for evaluation are Sherlock, a 4-core Intel i5 machine with 8GB of memory running the Ubuntu configuration, and Catzilla, a 16-core AMD Opteron machine with 64GB of memory running the Scientific Linux configuration.
+  
+  Boost 1.46.1 is the currently packaged version of Boost on Ubuntu 12.04. Unfortunately it suffers from an occasional deadlock issue due to locking order when a sleeping thread is interrupted by calling boost::thread::interrupt(). We encountered this issue during development which for certain build configurations and datasets would very reliably cause deadlocks. Interruption was being used to exit threads when processing was complete. Interruption causes an exception to be thrown in the interrupted thread; we replaced calls to thread::interrupt() with a task that throws this exception when invoked. The entry function of the worker thread then catches this exception and exits the thread.
   
   \chapter {Method 0 - Original Single-Threaded ELEXIR}
   
@@ -99,53 +105,107 @@
   
   \section {Implementation}
   
-  On each new observation, the entire current list of explanations is looped over by the main thread, and a new list of explanations is generated.
+  On each new observation, the entire current list of explanations is looped over by the main thread, and a new list of explanations is generated. The batch size and thread count parameters are ignored.
   
   [TODO: code snippet]
   
   \section{Evaluation}
+  
   \subsection{XPERIENCE Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-0-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads (ignored) on Sherlock, Method 0, XPERIENCE domain}
+  % \label{}
+  \end{figure}
+  
   \subsection{Logistics Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-0-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads (ignored) on Sherlock, Method 0, Logistics domain}
+  % \label{}
+  \end{figure}
   \section{Analysis}
   TODO
   
   \chapter {Method 1 - One Thread Per Task}
   
-  As a proof of concept for multithreading the algorithm, this method spawns a new thread for each task.
+  As a proof of concept for multithreading the algorithm, this method spawns a new thread for each task, one task per hardware thread up to the thread limit.
   
   \section {Implementation}
   
-  On each new observation,  the main thread spawns a new thread for each task. Each task processes its expressions and produces new resulting expressions. The main thread waits for all the spawned threds to complete, and collects their results, then spawns a new set of threads on the next observation.
+  On each new observation,  the main thread spawns a new thread for each task, equal to the number of hardware threads available or the thread limit. Each task processes its explanations and produces new resulting explanations. The main thread waits for all the spawned threds to complete, and collects their results, then spawns a new set of threads on the next observation. This implementation ignores the batch size parameter and partitions the explanations evenly between tasks.
   
   [TODO: code snippet]
   
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-1-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 1, XPERIENCE domain}
+  % \label{}
+  \end{figure}
+  
   \subsection{Logistics Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-1-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 1, Logistics domain}
+  % \label{}
+  \end{figure}
   \section{Analysis}
   TODO
   
   \chapter {Method 2 - One Queue Per Thread}
   
-  This method uses one queue per thread, guarded by a mutual exclusion lock.
+  This method uses one blocking queue per thread, guarded by a mutual exclusion lock.
   
   \section {Implementation}
   
   The main thread creates a queue for each worker thread, then spawns the threads. On each new observation, the main thread partitions the work evenly between the worker thread queues, and waits for them to finish processing them, finally collecting the new explanations.
   
-  TODO - Describe blocking and signalling on the queue.
-  TODO - Describe detecting completion.
-  TODO - Describe boost::bounded\_buffer.
+  The implementation of the queue is based on boost::bounded\_buffer from the documentation of the Boost Circular Buffer library. Internally, it uses a bounded circular buffer guarded by a mutex. Worker threads trying to fetch work wait on a condition variable which is signalled when work is added to the buffer. The main difference between this method and the previous one is that the threads sleep between observations rather than exiting and being recreated.
+  
+  Completion is detected using a completion barrier as described in The Art of Multiprocessor Programming [TODO: cite]. A count of active threads is maintained and atomically incremented and decremented by worker threads as they become busy or idle.
+  
+  This implementation does not take into account the batch size parameter, since the main thread is responsible for redistributing the work. The main thread creates as task for each worker thread and splits the explanation to be processed evenly between them.
   
   \section{Evaluation}
   \subsection{XPERIENCE Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-2-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 2, XPERIENCE domain}
+  % \label{}
+  \end{figure}
+  
   \subsection{Logistics Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-2-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 2, Logistics domain}
+  % \label{}
+  \end{figure}
   \section{Analysis}
   TODO
   
@@ -155,13 +215,50 @@
   
   \section {Implementation}
   
-  TODO - Describe implementation. Insertion of memory barriers. Hazard pointers and resizing. Expected properties in terms of load-balancing.
+  The implementation of this scheduler is based on [TODO: cite], also described in The Art of Multiprocessor Programming [TODO: cite], which describes a lock-free work-stealing queue where stealing threads steal a single task from the tail of the victim thread's queue, and threads otherwise insert and retrieve work from the head of their own queue. The queue can be resized safely if there is not enough space to insert work at the head of the queue. The original implementation described is appropriate for the language Java where memory is managed by garbage collection, and reads and writes to volatile variables are not reordered. In order to implement this in C++, the replacement of the queue's buffer when it is reallocated had to be guarded using \emph{hazard pointers} [TODO: cite] and the ordering of reads and writes to variables accessed locklessly enforced using compiler-specific memory fence directives. [TODO: cite gcc manual? Or footnote + cite]
+  
+  In terms of performance, we expect this implementation to have low contention due to the lack of locking, and good load-balancing since idle threads will steal work from other threads. During initial testing, we found that performance would drop as the number of threads increased from 2 to 4 threads. Using cachegrind to produce a differential profile between a run with 1 thread and a run with 4 threads, we discovered that idle threads were spending a lot of time in random number generation, which is used when selecting a victim thread to steal from. The insertion of a short sleep after failed stealing attempts resolved this issue.
+   
+  [TODO: code snippet]
   
   \section{Evaluation}
+  
+  \subsection{Batch Size Parameter}
+  
+  In order to estimate the best value for the batch size parameter, we ran the implementation with 4 threads on the XPERIENCE domain, varying the batch size.
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/batch-xper5-sherlock-3-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with varying batch size on Sherlock, XPERIENCE domain}
+  \label{fig:batch-3}
+  \end{figure}
+  
+  We can see in Figure~\ref{fig:batch-3} that the batch size does not significantly affect the runtime for this algorithm. All further tests were performed with a batch size of 8.
+  
   \subsection{XPERIENCE Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-3-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 3, XPERIENCE domain}
+  % \label{}
+  \end{figure}
+  
   \subsection{Logistics Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-3-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 3, Logistics domain}
+  % \label{}
+  \end{figure}
+  
   \section{Analysis}
   TODO
   
@@ -176,10 +273,43 @@
   [TODO: code snippet]
   
   \section{Evaluation}
+  
+  \subsection{Batch Size Parameter}
+  
+  In order to estimate the best value for the batch size parameter, we again ran the implementation with 4 threads on the XPERIENCE domain, varying the batch size.
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/batch-xper5-sherlock-4-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with varying batch size on Sherlock, XPERIENCE domain}
+  \label{fig:batch-4}
+  \end{figure}
+  
+  We can see in Figure~\ref{fig:batch-4} that the batch size parameter does have an effect on the runtime of this algorithm, suggesting that contention for the lock is worse with small tasks leading for more frequent insertions and removals on the global queue. In this test the runtime is similar from 8 explanations per batch upward, so all further tests were performed with a batch size of 8.
+  
   \subsection{XPERIENCE Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-xper5-sherlock-4-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 4, XPERIENCE domain}
+  % \label{}
+  \end{figure}
+  
   \subsection{Logistics Domain}
   TODO
+  
+  \begin{figure}[!htbp]
+  \begin{centering}
+  \includegraphics[width=0.8\textwidth]{images/threads-log3-sherlock-4-1}
+  \par\end{centering}
+  \caption{Work-Stealing Runtime with 1 to 4 threads on Sherlock, Method 4, Logistics domain}
+  % \label{}
+  \end{figure}
+  
   \section{Analysis}
   TODO
   
