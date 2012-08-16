@@ -27,12 +27,6 @@ Categorial Grammars assign \emph{categories} to each input token or symbol, and 
 
 Taking a simple example from the Logistics domain:
 
-\lstset{
-  basicstyle=\ttfamily\scriptsize,
-  breaklines=true,
-  frame=tb
-}
-
 \begin{lstlisting}
 observations: [
   loadTruck(p0, t0, c1),
@@ -68,9 +62,7 @@ We reduce the input to an explanation consisting of a single basic category, \te
 
 The leftward and rightward application combinators are the reductions already present in categorial grammars. The other two combinators commonly used in CCGs are composition and type-raising.
 
-Composition corresponds to function composition. The rightward composition operation has the form: $X/Z \leftarrow X/Y,\;  Y/Z$. TODO: more explanation
-
-Type-raising transforms basic categories to complex categories. The rightward type-raising operation has the form: $T/(T\backslash X) \leftarrow X$. TODO: more explanation
+Composition corresponds to function composition. The rightward composition operation has the form: $X/Z \leftarrow X/Y,\;  Y/Z$. Type-raising transforms basic categories to complex categories. The rightward type-raising operation has the form: $T/(T\backslash X) \leftarrow X$.
 
 \section{Applying CCGs to Plan Recognition}
 

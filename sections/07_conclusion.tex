@@ -1,13 +1,13 @@
 \chapter{Conclusion}
 
-TODO draw conclusions from the results - why is work stealing so much better for this problem?
+In all our tests, the lock-free work-stealing queue performs far better than any of the other algorithms studied, a performance that seems to justify its higher complexity of implementation. This algorithm avoids locking, leading to low contention between threads, and automatically load-balances, leading to better utilisation of worker threads.
 
-TODO future work: exploring only the most likely explanations given the observations so far
+We have seen evidence suggesting that the problem domain has an effect on the scalability of plan recognition, and that this may be related to the memory allocation behaviour during execution. Future work could explore how the structure of the domain leads to fewer or more explanations being generated at each stage, and perhaps how to optimise a domain for scalability. The use of specialised memory allocators, and modifications to the algorithm to reduce memory allocations, could also be explored.
 
-TODO future work: improving the memory allocation behaviour of the algorithm and testing different memory allocators better suited to multi-threaded code
+We have investigated and successfully parallelised the main part of the ELEXIR algorithm. The largest part of the remaining runtime comes from the probability computation post-process, which seems especially expensive now that we have sped up the main part. Further work could explore parallelising this section of the algorithm to further speed up the computation.
 
-TODO future work: parallelising the probability computation (would be automatic, and probably have better memory locality, if we did it incrementally)
+[TODO Could even graph the probability computation times, since we recorded them.]
 
-TODO future work: incremental version, producing explanations each observations
+The ELEXIR algorithm produces a complete list of possible consistent explanations and their probabilities. Client code may not need such a full exploration of the possibility space, and instead need only a list of the most probable explanations. The ELEXIR algorithm could be adapted to expand only the most probable current explanations. As new observations arrive, older unexplored possibilities may become more likely, and be explored further.
 
-TODO future work: discarding observations of a certain age if unused?
+In order to apply the ELEXIR algorithm to real time scenarios, an incremental version would be desirable, maintaining a list of explanations and updating it with new observations rather than updating it as a batch. This would mean incrementally computing the probabilities, which would naturally mean the parallelisation of the probability computation as suggested above.

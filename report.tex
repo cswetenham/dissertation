@@ -14,13 +14,24 @@
 \usepackage{amstext} % for \text
 \usepackage{subcaption} % for \subfloat
 \usepackage{epstopdf} % for eps images
-% \usepackage{beramono} % for bera mono font
+\usepackage[T1]{fontenc} % fix encondings?
+\usepackage{textcomp}
+\usepackage[scaled]{beramono} % for bera mono font
+\usepackage[usenames,dvipsnames]{color} % for colour names
+\usepackage{comment}
 
 % only needed for \usepackage{fancyvrb}. \renewcommand\theFancyVerbLine{\normalsize\arabic{FancyVerbLine}}
 
 % Added config
 \setlength{\parskip}{0pt plus12pt minus4pt}
 \raggedbottom
+
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  frame=tb,
+  commentstyle={\color{OliveGreen}}
+}
 
 % Project Details
 \title{Parallelising Plan Recognition}
@@ -98,13 +109,19 @@
   
   The executable compiled for evaluation runs takes as parameters the domain and problem files to be processed. In addition, command-line arguments allow specifying the number of explanations to allocate in each task, and the maximum number of worker threads to spawn. Except in Method 1, it will never spawn more worker threads than there are hardware threads available.
   
-  The code for this project was developed using Boost version 1.46.1 on Ubuntu Linux 12.04 64-bit, and also tested and run using Boost version 1.41 on Scientific Linux 6.2. The machines used for evaluation are Sherlock, a 4-core Intel i5 desktop PC with 8GB of memory running the Ubuntu configuration, and Catzilla, a 16-core AMD Opteron multi-user server with 64GB of memory running the Scientific Linux configuration.
+  The code for this project was developed using Boost version 1.46.1 on Ubuntu Linux 12.04 64-bit, and also tested and run using Boost version 1.41 on Scientific Linux 6.2. The machines used for evaluation are Sherlock, a 4-core Intel i5 desktop PC with 8GB of memory running the Ubuntu configuration, and Catzilla, a 16-core AMD Opteron multi-user server with 64GB of memory running the Scientific Linux configuration. The code was built using GCC under the -O3 optimisation level for evaluation.
   
-  Boost 1.46.1 is the currently packaged version of Boost on Ubuntu 12.04. Unfortunately it suffers from an occasional deadlock issue due to locking order when a sleeping thread is interrupted by calling boost::thread::interrupt(). We encountered this issue during development which for certain build configurations and datasets would very reliably cause deadlocks. Interruption was being used to exit threads when processing was complete. Interruption causes an exception to be thrown in the interrupted thread; we replaced calls to thread::interrupt() with a task that throws this exception when invoked. The entry function of the worker thread then catches this exception and exits the thread.
+  Boost 1.46.1 is the currently packaged version of Boost on Ubuntu 12.04. Unfortunately it suffers from an occasional deadlock issue due to locking order when a sleeping thread is interrupted by calling \texttt{boost::thread::interrupt()}. We encountered this issue during development which for certain build configurations and datasets would very reliably cause deadlocks. Interruption was being used to exit threads when processing was complete. Interruption causes an exception to be thrown in the interrupted thread; we replaced calls to \texttt{thread::interrupt()} with a task that throws this exception when invoked. The entry function of the worker thread then catches this exception and exits the thread.
   
-  Each algorithm is implemented with a similar structure: a class encapsulates the algorithm, and is instantiated based on the selected algorithm for each run. This class has a method which is called on the main thread, and creates the worker threads. Each of the threads runs a static method on the class, which interacts with a \texttt{WorkerData} structure containing the queues or other relevant information. The worker thread method is mostly independent of the nature of the work being done. Finally, tasks are represented by a \texttt{TaskData} structure which contains the expressions for the task, and any other relevant data. This structure has a method which is passed a pointer to the \texttt{WorkerData}, processes the expressions, and passes the results back into new tasks or to the main thread.
+  Each algorithm is implemented with a similar structure: a class encapsulates the algorithm, and is instantiated based on the selected algorithm for each run. This class has a method \texttt{explainObservations} which is called on the main thread, and creates the worker threads. Each of the threads runs a static method \texttt{thread\_fn} on the class, which interacts with a \texttt{WorkerData} structure containing the queues or other relevant information. The worker thread method is mostly independent of the nature of the work being done. Finally, tasks are represented by a \texttt{TaskData} structure which contains the expressions for the task, and any other relevant data. This structure has a method \texttt{execute} which is passed a pointer to the \texttt{WorkerData}, processes the expressions, and passes the results back into new tasks or to the main thread.
   
   The two problem domains used for evaluation are the XPERIENCE domain, which involves hands picking up and moving balls around and into cups, and is based on the XPERIENCE robotics project [TODO: cite]; and the Logistics domain, which involves trucks and airplanes transporting packages between cities, and is based on the Logistics domain in the First International Planning Competition [TODO: cite].
+  
+  During evaluation, each configuration was run 5 times, on both domains, on both machines, varying either the batch size or the maximum number of worker threads. We have focused on measuring the runtime for the core of the algorithm, ignoring in our timings the parsing of the input files, the probability computations, and output of the results.
+  
+  % TODO and the longest runtime discarded, to provide some insurance against runs where other processes are taking up a lot of processor time, particularly on Catzilla.
+  
+  Code listings will be provided to highlight certain details of implementation. In these listings, details such as i/o and runtime statistics gathering have been omitted for clarity.
   
   \chapter {Method 0 - Original Single-Threaded ELEXIR}
   
@@ -114,13 +131,32 @@
   
   On each new observation, the entire current list of explanations is looped over by the main thread, and a new list of explanations is generated. The batch size and thread count parameters are ignored.
   
-  [TODO: code snippet]
+  \begin{lstlisting}[language=C++]
+  void explainObservations(Problem const* problem, list<Explanation*>* results)
+  {
+    // Initialise the set of explanations with a single empty explanation
+    curExps.push_back( new Explanation() );
+    // Loop over the observations
+    for ( size_t i = 0; i < problem->obs.size(); ++ i ) {
+      if ( curExps.empty() ) { return; } // Found no consistent explanations
+      // Process all explanations on the main thread
+      while ( !curExps.empty() ) {
+        Explanation* lep = curExps.front();
+        lep->extendExplanation( &problem->lexicon, &problem->obs[ lep->obsIndex ], &newExps );
+        delete lep;
+        curExps.pop_front();
+      }
+      curExps.splice(curExps.end(), newExps);
+    }
+    results->splice(results->end(), curExps);
+  }
+  \end{lstlisting}
   
   \section{Evaluation}
   
-  Since this method does not scale with the number of threads, we will report baseline performance numbers, shown in Table~\ref{tab:m0}.
+  The algorithm was evaluated on the XPERIENCE and Logistics domains, on the Sherlock and Catzilla machines. Since this method does not scale with the number of threads, we will report baseline performance numbers, shown in Table~\ref{tab:m0}.
   
-  \begin{table}
+  \begin{table}[!htbp]
   \begin{tabular}{c c c}
   Domain & Sherlock Runtime (seconds) & Catzilla Runtime (seconds)\tabularnewline
   \hline
@@ -140,9 +176,47 @@
   
   On each new observation,  the main thread spawns a new thread for each task, equal to the number of hardware threads available or the thread limit. Each task processes its explanations and produces new resulting explanations. The main thread waits for all the spawned threads to complete, and collects their results, then spawns a new set of threads on the next observation. This implementation ignores the batch size parameter and partitions the explanations evenly between tasks.
   
-  [TODO: code snippet]
-  
+  \begin{lstlisting}[language=C++]
+  void explainObservations(Problem const* problem, list<Explanation*>* results)
+  {
+    // Initialise the set of explanations with a single empty explanation.
+    curExps.push_back(new Explanation());
+    // Loop over the observations
+    for ( unsigned i = 0; i < problem->obs.size(); ++ i ) {
+      if ( curExps.empty() ) { return; } // Found no consistent explanations
+      // Distribute the explanations into one task per thread
+      int i = 0;
+      while ( !curExps.empty() ) {
+        tasks[i].push_back(curExps.front());
+        curExps.pop_front();
+        i = (i + 1) % numThreads_;
+      }
+      // Launch the threads and wait for them to complete
+      for (int i = 0; i < numThreads_; ++i) {
+        threads.add_thread(new boost::thread(&thread_fn, problem, &tasks[i], &taskResults[i]));
+      }
+      threads.join_all();
+      for (int i = 0; i < numThreads_; ++i) {
+        curExps.splice(curExps.end(), taskResults[i]);
+      }
+    }
+    results->splice(results->end(), curExps);
+  }
+
+  static void thread_fn(Problem const* problem, list<Explanation*>* exps, list<Explanation*>* out)
+  {
+    while ( !exps->empty() ) {
+      Explanation* lep = exps->front();
+      lep->extendExplanation(&problem->lexicon, &problem->obs[lep->obsIndex], out);
+      delete lep;
+      exps->pop_front();
+    }
+  }
+  \end{lstlisting}
+
   \section{Evaluation}
+  
+  The algorithm was evaluated on the XPERIENCE and Logistics domains, on the Sherlock and Catzilla machines, with different thread count limits. For each set of runs, we plot the runtime in seconds and the relative throughput. If the algorithm scales perfectly, the throughput graph should be linear.
   
   \begin{figure}[!htbp]
   \centering{}
@@ -184,6 +258,8 @@
   \label{fig:thread-s1l}
   \end{figure}
   
+  Despite the very simplistic approach to task scheduling taken in this approach, we achieve a good almost-linear speedup on Sherlock with this method, although the speedup visibly tails off at the 4th thread.
+  
   \begin{figure}[!htbp]
   \centering{}
   \begin{minipage}[t]{0.49\columnwidth}
@@ -224,6 +300,8 @@
   \label{fig:thread-c1l}
   \end{figure}
   
+  Catzilla provides a more challenging environment for evaluation. Since this is a multi-user system, the runtimes vary much more, but we can see in the XPERIENCE domain that the performance increases near-linearly up to 4 threads, then hardly increases after this. In the Logistics domain, the performance increases near-linearly up to 6 threads before it begins to level off.
+  
   \chapter {Method 2 - One Queue Per Thread}
   
   This method uses one blocking queue per thread, guarded by a mutual exclusion lock.
@@ -238,7 +316,74 @@
   
   This implementation does not take into account the batch size parameter, since the main thread is responsible for redistributing the work. The main thread creates as task for each worker thread and splits the explanation to be processed evenly between them.
   
+  \begin{lstlisting}[language=C++]
+  void explainObservations(Problem const* problem, list<Explanation*>* results)
+  {
+    for (int i = 0; i < numThreads_; ++i) {
+      workerData[i].problem = problem;
+    }
+    // Initialise the set of explanations with a single empty explanation.
+    curExps.push_back( new Explanation() );
+    for (int i = 0; i < numThreads_; ++i) {
+      threads.add_thread(new boost::thread(&thread_fn, &workerData[i]));
+    }
+    // Loop over the observations
+    for ( unsigned i = 0; i < problem->obs.size(); ++ i ) {
+      if ( curExps.empty() ) { return; } // Found no consistent explanations for the observations
+      // Distribute the explanations into one task per thread
+      int i = 0;
+      while ( !curExps.empty() ) {
+        taskData[i].exps.push_back(curExps.front());
+        curExps.pop_front();
+        i = (i + 1) % numThreads_;
+      }
+      for (int i = 0; i < numThreads_; ++i) {
+        barrier.incActive();
+        workerData[i].queue->push_front(&taskData[i]);
+      }
+      // Wait for them to complete
+      while (!barrier.allInactive()) {
+        boost::this_thread::sleep(boost::posix_time::millisec(1));
+      }
+      for (int i = 0; i < numThreads_; ++i) {
+        curExps.splice(curExps.end(), taskData[i].results);
+      }
+    }
+    results->splice(results->end(), curExps);
+  }
+  
+  static void thread_fn(WorkerData* workerData)
+  {
+    Queue* queue = workerData->queue;
+    TerminationBarrier* barrier = workerData->barrier;
+    try {
+      while (true) {
+        TaskData* task;
+        queue->pop_back(&task);
+        task->execute(workerData);
+        barrier->decActive();
+      }
+    } catch (boost::thread_interrupted& e) {
+      // exit thread
+    }
+  }
+  
+  void Task::execute(WorkerData* workerData) {
+    if (exit) { throw boost::thread_interrupted(); }
+    Problem const* problem = workerData->problem;
+    while ( !exps.empty() ) {
+      Explanation* lep = exps.front();
+      lep->extendExplanation(&problem->lexicon, &problem->obs[lep->obsIndex], &results);
+      delete lep;
+      exps.pop_front();
+    }
+  }
+  \end{lstlisting}
+
+  
   \section{Evaluation}
+  
+  The algorithm was again evaluated on the XPERIENCE and Logistics domains, on the Sherlock and Catzilla machines, with different thread count limits. For each set of runs, we plot the runtime in seconds and the relative throughput.
   
   \begin{figure}[!htbp]
   \centering{}
@@ -280,6 +425,8 @@
   \label{fig:thread-s2l}
   \end{figure}
   
+  Both domains on Sherlock show very similar characteristics to the previous method, with almost linear speedup.
+  
   \begin{figure}[!htbp]
   \centering{}
   \begin{minipage}[t]{0.49\columnwidth}
@@ -320,8 +467,9 @@
   \label{fig:thread-c2l}
   \end{figure}
   
-  \section{Analysis}
-  TODO
+  The runs on Catzilla are harder to analyse, but we can see that 5 threads seems the best number for the XPERIENCE domain, after which we have some erratic data points with the running time eventually rising again as the number of threads is increased. For the Logistics domain, performance seems to scale near-linearly up to 8 threads, after which it remains more or less constant.
+  
+  [TODO - better analysis here]
   
   \chapter {Method 3 - Lock-Free Work-Stealing}
   
@@ -329,11 +477,107 @@
   
   \section {Implementation}
   
-  The implementation of this scheduler is based on [TODO: cite], also described in The Art of Multiprocessor Programming [TODO: cite], which describes a lock-free work-stealing queue where stealing threads steal a single task from the tail of the victim thread's queue, and threads otherwise insert and retrieve work from the head of their own queue. The queue can be resized safely if there is not enough space to insert work at the head of the queue. The original implementation described is appropriate for the language Java where memory is managed by garbage collection, and reads and writes to volatile variables are not reordered. In order to implement this in C++, the replacement of the queue's buffer when it is reallocated had to be guarded using \emph{hazard pointers} [TODO: cite] and the ordering of reads and writes to variables accessed locklessly enforced using compiler-specific memory fence directives. [TODO: cite gcc manual? Or footnote + cite]
+  The implementation of this scheduler is based on [TODO: cite], also described in The Art of Multiprocessor Programming [TODO: cite], which describes a lock-free work-stealing queue where stealing threads steal a single task from the tail of the victim thread's queue, and threads otherwise insert and retrieve work from the head of their own queue. The queue can be resized safely if there is not enough space to insert work at the head of the queue. The original implementation described is appropriate for the language Java where memory is managed by garbage collection, and reads and writes to volatile variables are not reordered. In order to implement this in C++, the replacement of the queue's buffer when it is reallocated had to be guarded using \emph{hazard pointers} [TODO: cite] and the ordering of reads and writes to variables accessed locklessly enforced using compiler-specific memory fence directives. [TODO: cite GCC manual? Or footnote + cite]
   
   In terms of performance, we expect this implementation to have low contention due to the lack of locking, and good load-balancing since idle threads will steal work from other threads. During initial testing, we found that performance would drop as the number of threads increased from 2 to 4 threads. Using cachegrind to produce a differential profile between a run with 1 thread and a run with 4 threads, we discovered that idle threads were spending a lot of time in random number generation, which is used when selecting a victim thread to steal from. The insertion of a short sleep after failed stealing attempts resolved this issue.
    
-  [TODO: code snippet]
+  \begin{lstlisting}[language=C++]
+  void explainObservations(Problem const* problem, list<Explanation*>* results)
+  {
+    // Initialise the set of explanations with a single empty explanation
+    TaskData initTask;
+    initTask.exps.push_back(new Explanation());
+    queues[0]->pushBottom( initTask );
+    for (int i = 0; i < numThreads_; ++i) {
+      workerData[i].problem = problem;
+    }
+    // Launch threads
+    for (int i = 0; i < numThreads_; ++i) {
+      threads.add_thread( new boost::thread(&thread_fn, &workerData[i]) );
+    }
+    // Wait for them to complete
+    while (!barrier.allInactive()) {
+      boost::this_thread::sleep(boost::posix_time::millisec(10));
+    }
+    // Force them to exit
+    for (int i = 0; i < numThreads_; ++i) {
+      TaskData exitTask;
+      exitTask.exit = true;
+      lexCore::writeBarrier();
+      queues[i]->pushBottom(exitTask);
+    }
+    threads.join_all();
+    for (int i = 0; i < numThreads_; ++i) {
+      curExps.splice(curExps.end(), taskResults[i]);
+    }
+    results->splice(results->end(), curExps);
+  }
+  
+  static void thread_fn(WorkerData* workerData)
+  {
+    VictimPicker* victimPicker = workerData->victimPicker;
+
+    std::vector< WorkStealingQueue<TaskData>* >& queues = *workerData->queues;
+    TerminationBarrier* barrier = workerData->barrier;
+    boost::posix_time::millisec const sleepTime = boost::posix_time::millisec(1);
+
+    TaskData task;
+    try {
+      while (true) {
+        // Take work from own queue
+        while (queues[workerData->workerID]->popBottom(&task)) {
+          task.execute(workerData);
+        }
+        barrier->decActive();
+        // Try stealing work
+        while(true) {
+          int victim = (*victimPicker)();
+          if (!queues[victim]->isEmpty()) {
+            barrier->incActive();
+            if (queues[victim]->popTop(&task)) {
+              task.execute(workerData);
+              break;
+            }
+            barrier->decActive();
+          }
+          if (barrier->allInactive()) { return; }
+          boost::this_thread::sleep(sleepTime);
+        }
+      }
+    } catch (boost::thread_interrupted const& e) {
+        // Exit thread
+    }
+  }
+
+  void Task::execute(WorkerData* workerData)
+  {
+      if (exit) { throw boost::thread_interrupted(); }
+      Problem const* problem = workerData->problem;
+      while ( !exps.empty() ) {
+        Explanation* lep = exps.front();
+        if ((size_t)lep->obsIndex < problem->obs.size()) {
+          list< Explanation* > results;
+          lep->extendExplanation(&problem->lexicon, &problem->obs[lep->obsIndex], &results);
+          delete lep;
+
+          // Push results as new tasks
+          while (!results.empty()) {
+            for (int i = 0; i < workerData->maxBatch && !results.empty(); ++i) {
+              TaskData newTask;
+              newTask.exps.push_back(results.front());
+              (*workerData->queues)[workerData->workerID]->pushBottom(newTask);
+              results.pop_front();
+            }
+          }
+        } else { // No more explanations, add this to the list of completed explanations
+          workerData->results->push_back(lep);
+        }
+
+        exps.pop_front();
+      }
+    }
+  \end{lstlisting}
+
   
   \section{Evaluation}
   
@@ -352,6 +596,9 @@
   We can see in Figure~\ref{fig:batch-3} that the batch size does not significantly affect the runtime for this algorithm. All further tests were performed with a batch size of 8.
   
   \subsection{Thread Count}
+  
+  The algorithm was again evaluated on the XPERIENCE and Logistics domains, on the Sherlock and Catzilla machines, with different thread count limits. For each set of runs, we plot the runtime in seconds and the relative throughput.
+  
   \begin{figure}[!htbp]
   \centering{}
   \begin{minipage}[t]{0.49\columnwidth}
@@ -391,6 +638,8 @@
   \caption{Runtime with 1 to 4 threads on Sherlock, Method 3, Logistics domain}
   \label{fig:thread-s3l}
   \end{figure}
+  
+  Runs on Sherlock again show a near-linear speedup with slight tailing off when we reach 4 threads.
   
   \begin{figure}[!htbp]
   \centering{}
@@ -432,8 +681,11 @@
   \label{fig:thread-c3l}
   \end{figure}
   
-  \section{Analysis}
-  TODO
+  The runs on Catzilla show a sharp speedup at first, followed by a slow decline. The XPERIENCE domain peaks at around 5 threads, and the Logistics domain around 7 threads. 
+  
+  [TODO - thread idle/active times]
+  
+  [TODO - cachegrind results]
   
   \chapter {Method 4 - Single Global Queue}
   
@@ -443,7 +695,102 @@
   
   The main thread adds a single empty explanation to the global queue, then spawns a worker thread for each hardware thread available. These threads all attempt to lock the queue and extract work from it. If they cannot lock the queue, they sleep until the lock becomes available. If they lock the queue and find it empty, they sleep for a fixed period of time, then try again. Once they complete the task, they lock the queue to put all the newly generated work on the queue, then resume trying to pull a task from the head of the queue.
   
-  [TODO: code snippet]
+  \begin{lstlisting}[language=C++]
+  void explainObservations(Problem const* problem, list<Explanation*>* results)
+  {
+    for (int i = 0; i < numThreads_; ++i) {
+      workerData[i].problem = problem;
+    }
+
+    // Initialise the set of explanations with a single empty explanation
+    {
+      TaskData* newTask = new TaskData();
+      newTask->exps.push_back(new Explanation());
+      boost::mutex::scoped_lock lock(mutex);
+      queue.push_back(newTask);
+    }
+
+    // Create worker threads and wait for them to complete
+    for (int i = 0; i < numThreads_; ++i) {
+      threads.add_thread( new boost::thread(&thread_fn, &workerData[i]) );
+    }
+    while (!barrier.allInactive()) {
+      boost::this_thread::sleep(boost::posix_time::millisec(10));
+    }
+    threads.interrupt_all();
+    threads.join_all();
+
+    for (int i = 0; i < numThreads_; ++i) {
+      curExps.splice(curExps.end(), taskResults[i]);
+    }
+    if ( curExps.empty() ) { return; } // Found no consistent explanations for the observations
+    results->splice(results->end(), curExps);
+  }
+
+  static void thread_fn(WorkerData* workerData) {
+    TerminationBarrier* barrier = workerData->barrier;
+    boost::mutex* mutex = workerData->mutex;
+    Queue* queue = workerData->queue;
+
+    boost::posix_time::millisec const sleepTime = boost::posix_time::millisec(10);
+    
+    try {
+      while (true) {
+        TaskData* task = NULL;
+        {
+          boost::mutex::scoped_lock lock(*mutex);
+          if (!queue->empty()) {
+            task = queue->front();
+            queue->pop_front();
+          }
+        }
+
+        // If succeeded, execute, otherwise sleep
+        if (task) {
+          task->execute(workerData);
+          delete task;
+        } else {
+          barrier->decActive();
+          if (barrier->allInactive()) { return; }
+          boost::this_thread::sleep(sleepTime);
+          barrier->incActive();
+        }
+      }
+    } catch (boost::thread_interrupted const& e) {
+      // exit thread
+    }
+  }
+  
+  void execute(WorkerData* workerData)
+  {
+    if (exit) { throw boost::thread_interrupted(); }
+    Problem const* problem = workerData->problem;
+    std::list<Explanation*> results;
+    while ( !exps.empty() ) {
+      Explanation* lep = exps.front();
+      exps.pop_front();
+      if ((size_t)lep->obsIndex < problem->obs.size()) {
+        lep->extendExplanation(&problem->lexicon, &problem->obs[lep->obsIndex], &results);
+        delete lep;
+      } else {
+        // No more explanations, add this to the list of completed explanations
+        workerData->results->push_back(lep);
+      }
+    }
+
+    // Push new expression back onto queue as tasks
+    boost::mutex::scoped_lock lock(*workerData->mutex);
+    while (!results.empty()) {
+      TaskData* newTask = new TaskData;
+      for (int i = 0; i < workerData->maxBatch && !results.empty(); ++i) {
+        newTask->exps.push_back(results.front());
+        results.pop_front();
+      }
+      workerData->queue->push_back(newTask);
+    }
+  }
+  \end{lstlisting}
+
   
   \section{Evaluation}
   
@@ -462,7 +809,10 @@
   We can see in Figure~\ref{fig:batch-4} that the batch size parameter does have an effect on the runtime of this algorithm, suggesting that contention for the lock is worse with small tasks leading for more frequent insertions and removals on the global queue. In this test the runtime is similar from 8 explanations per batch upward, so all further tests were performed with a batch size of 8.
   
   \subsection{Thread Count}
-  T\begin{figure}[!htbp]
+  
+  The algorithm was again evaluated on the XPERIENCE and Logistics domains, on the Sherlock and Catzilla machines, with different thread count limits. For each set of runs, we plot the runtime in seconds and the relative throughput.
+  
+  \begin{figure}[!htbp]
   \centering{}
   \begin{minipage}[t]{0.49\columnwidth}
   \subfloat[Runtime]{
@@ -501,6 +851,8 @@
   \caption{Runtime with 1 to 4 threads on Sherlock, Method 4, Logistics domain}
   \label{fig:thread-s4l}
   \end{figure}
+  
+  The runs on Sherlock again show a near-linear speedup.
   
   \begin{figure}[!htbp]
   \centering{}
@@ -542,8 +894,11 @@
   \label{fig:thread-c4l}
   \end{figure}
   
-  \section{Analysis}
-  TODO
+  The runs on Catzilla show a linear speedup at first, followed by a peak and tailing off. Both domains peak at around 8 threads.
+  
+  [TODO - thread idle/active times]
+  
+  [TODO - cachegrind results]
   
   % \input{sections/04_design}
    

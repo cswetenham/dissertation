@@ -4,7 +4,7 @@ img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif
 kileprversion=2
 kileversion=2.1.0
-lastDocument=sections/misc/ii_abstract.tex
+lastDocument=report.tex
 masterDocument=
 name=dissertation
 pkg_extIsRegExp=false
@@ -66,6 +66,16 @@ Indentation Mode=normal
 Mode=LaTeX
 ReadWrite=true
 
+[document-settings,item:sections/07_conclusion.tex]
+Bookmarks=
+Encoding=UTF-8
+FoldedColumns=
+FoldedLines=
+Highlighting=LaTeX
+Indentation Mode=normal
+Mode=LaTeX
+ReadWrite=true
+
 [document-settings,item:sections/misc/i_acronyms.tex]
 Bookmarks=
 Encoding=UTF-8
@@ -77,6 +87,16 @@ Mode=LaTeX
 ReadWrite=true
 
 [document-settings,item:sections/misc/ii_abstract.tex]
+Bookmarks=
+Encoding=UTF-8
+FoldedColumns=
+FoldedLines=
+Highlighting=LaTeX
+Indentation Mode=normal
+Mode=LaTeX
+ReadWrite=true
+
+[document-settings,item:sections/misc/iii_acknowledgements.tex]
 Bookmarks=
 Encoding=UTF-8
 FoldedColumns=
@@ -98,20 +118,20 @@ order=-1
 
 [item:report.tex]
 archive=true
-column=2
+column=16
 encoding=UTF-8
 highlight=LaTeX
-line=118
+line=324
 mode=LaTeX
 open=true
 order=0
 
 [item:sections/01_intro.tex]
 archive=true
-column=225
+column=259
 encoding=UTF-8
 highlight=LaTeX
-line=4
+line=6
 mode=LaTeX
 open=true
 order=1
@@ -121,40 +141,40 @@ archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=87
+line=13
 mode=LaTeX
 open=true
-order=4
+order=2
 
 [item:sections/03_related.tex]
 archive=true
 column=0
 encoding=UTF-8
 highlight=LaTeX
-line=0
+line=14
 mode=LaTeX
 open=true
-order=2
+order=3
 
 [item:sections/06_evaluation.tex]
 archive=true
-column=10
+column=21
 encoding=UTF-8
 highlight=LaTeX
-line=22
+line=36
 mode=LaTeX
-open=false
-order=3
+open=true
+order=6
 
 [item:sections/07_conclusion.tex]
 archive=true
-column=3080302
-encoding=
-highlight=
-line=0
-mode=
-open=false
-order=-1
+column=371
+encoding=UTF-8
+highlight=LaTeX
+line=12
+mode=LaTeX
+open=true
+order=8
 
 [item:sections/appendix/A_evaluation.tex]
 archive=true
@@ -174,11 +194,11 @@ highlight=LaTeX
 line=1
 mode=LaTeX
 open=true
-order=3
+order=4
 
 [item:sections/misc/ii_abstract.tex]
 archive=true
-column=361
+column=544
 encoding=UTF-8
 highlight=LaTeX
 line=2
@@ -188,13 +208,13 @@ order=5
 
 [item:sections/misc/iii_acknowledgements.tex]
 archive=true
-column=0
-encoding=
-highlight=
-line=0
-mode=
-open=false
-order=-1
+column=74
+encoding=UTF-8
+highlight=LaTeX
+line=2
+mode=LaTeX
+open=true
+order=7
 
 [item:sections/misc/iv_dedication.tex]
 archive=true
@@ -217,32 +237,38 @@ open=false
 order=-1
 
 [view-settings,view=0,item:report.tex]
-CursorColumn=2
-CursorLine=118
+CursorColumn=16
+CursorLine=324
 JumpList=
 ViMarks=
 
 [view-settings,view=0,item:sections/01_intro.tex]
-CursorColumn=225
-CursorLine=4
+CursorColumn=259
+CursorLine=6
 JumpList=
 ViMarks=
 
 [view-settings,view=0,item:sections/02_background.tex]
 CursorColumn=0
-CursorLine=87
+CursorLine=13
 JumpList=
 ViMarks=
 
 [view-settings,view=0,item:sections/03_related.tex]
 CursorColumn=0
-CursorLine=0
+CursorLine=14
 JumpList=
 ViMarks=
 
 [view-settings,view=0,item:sections/06_evaluation.tex]
-CursorColumn=10
-CursorLine=22
+CursorColumn=21
+CursorLine=36
+JumpList=
+ViMarks=
+
+[view-settings,view=0,item:sections/07_conclusion.tex]
+CursorColumn=371
+CursorLine=12
 JumpList=
 ViMarks=
 
@@ -253,7 +279,13 @@ JumpList=
 ViMarks=
 
 [view-settings,view=0,item:sections/misc/ii_abstract.tex]
-CursorColumn=361
+CursorColumn=544
+CursorLine=2
+JumpList=
+ViMarks=
+
+[view-settings,view=0,item:sections/misc/iii_acknowledgements.tex]
+CursorColumn=74
 CursorLine=2
 JumpList=
 ViMarks=

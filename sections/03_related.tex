@@ -1,3 +1,46 @@
 \chapter{Related Work}
 
-TODO
+[TODO: rewrite]
+
+Approaches to Plan Recognition based on Hidden Markov Models (HMMs) and Conditional Random Fields (CRFs) exist[TODO: cite], but these suffer from contextual issues as well and are better suited to lower-level activity recognition. Graph-based methods reduce plan recognition to a graph covering problem, but are not well able to deal with partially ordered or interleaved plans, contextual effects, or combinations of planning and plan recognition[TODO: cite].
+The literature on parallelising search problems is extensive[TODO: cite], but of little relevance to this project since we are performing an exhaustive rather than heuristic search. There is some work on parallelising parsing, but this applies mainly to traditional parsing problems where only a single parse will result[TODO: cite].
+Clark and Curran have worked on a parallel implementation for learning CCGs in Natural Language[TODO: cite], but the parsing is not a complete parallel parser like the one we develop here.
+
+ELEXIR is an algorithm for parsing Combinatorial Categorical Grammars for Plan Recognition[TODO: cite]. The current implementation of the ELEXIR algorithm in C++ was well suited to parallelisation. A parallel implementation of the ELEXIR algorithm should show significant speedup on modern multicore machines.
+
+[TODO: cite] provides an overview of literature on work-stealing vs work-sharing as a scheduling strategy. 
+
+[TODO: cite] Chase \& Lev describe an algorithm for a work-stealing queue, which we base ourselves on for our own implementation.
+
+\begin{comment}
+[1] Goldman, R. P.; Geib, C. W.; and Miller, C. A. 1999.
+plan recognition. In
+Intelligence.
+A new model of
+Proceedings of the Conference on Uncertainty in Artificial
+[2] Geib, C. W. 2009.
+Delaying Commitment in Plan Recognition Using
+Proceedings of the International Joint
+Conference on Artificial Intelligence (IJCAI) 2009, 1702-1707.
+Combinatory Categorial Grammars. In
+[3] Blumofe, R.D.; Leiserson, C.E. 1994. Scheduling multithreaded computa-
+Foundations of Computer Science, 1994 Proceedings.,
+35th Annual Symposium on, 356-368.
+tions by work stealing. In
+[4] Grune, D: Parsing techniques: a practical guide. Springer, 2008. ISBN
+978-1-4419-1901-4.
+[5] Andrews, G. R. Foundations of Multithreaded, Parallel, and Distributed
+Programming. Addison-Wesley, 2000. ISBN 978-0-2013-5752-3.
+[6] Clark S.; Curran, J. R. 2003. Log-linear models for wide-coverage CCG
+Proceedings of the 2003 conference on Empirical methods in natural
+language processing, 97-104.
+parsing. In
+[7] Avrahami-Zilberbrand, D., and Kaminka, G. A. 2005. Fast and complete
+symbolic plan recognition. In
+Proceedings IJ-CAI.
+[8] Bui, H. H.; Venkatesh, S.; and West, G. 2002.
+the Abstract Hidden Markov Model.
+Policy recognition in
+Journal of Artificial Intelligence Research
+17:451-499.
+\end{comment}
