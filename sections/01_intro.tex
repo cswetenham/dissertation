@@ -1,8 +1,7 @@
 \chapter{Introduction}
 
-Plan Recognition is a problem which consists of looking at a sequence of actions by an agent, and deduce possible goals that these actions achieve. Plan Recognition has many potential applications, including network intrusion detection, human-robot interaction and assisted care scenarios.
+Plan Recognition is a problem which consists of looking at a sequence of actions by an agent, and deduce possible goals that these actions achieve. Plan Recognition has many potential applications, including network intrusion detection, human-robot interaction and assisted care scenarios. In many of these potential problem domains, including the ones mentioned above, it is desirable to perform plan recognition in real time, rather than offline as a batch computation. However currently, for performance reasons, it is often infeasible to perform Plan Recognition in real time.
 
-In many of these potential problem domains, including the ones mentioned above, it is desirable to perform plan recognition in real time, rather than offline as a batch computation. However currently, for performance reasons, it is often infeasible to perform Plan Recognition in real time.
+In this project, we propose to improve the performance of plan recognition by parallelising the core of the algorithm, allowing it to take advantage of modern multicore machines. We investigate several methods for parallelising a particular Plan Recognition algorithm in C++. We investigate the performance on two different problem domains, and how the performance scales up with the number of available hardware threads.
 
-In this project, we investigate several methods for parallelising a particular Plan Recognition algorithm in C++. We investigate the performance on two different problem domains, and how the performance scales up with the number of available hardware threads.
-
+We will first cover the background for the project, and discuss related work. We then discuss the initial work done to prepare the algorithm for a multicore execution. For each of the algorithms studied, we discuss its particular implementation, and study its performance as we scale up the number of available threads. Finally, we compare the results for the algorithms studied, draw conclusions, and explore avenues for future work.

@@ -105,7 +105,7 @@
   
   The reference-counting was changed to use reference-counting smart pointers rather than the manual incrementing and decrementing initially present. This helped fix a number of memory leaks. It was also modified to use atomic incrementing and decrementing of reference counts, and this was sufficient to ensure thread safety, since threads incrementing the reference count always own at least one reference to it through the explanation currently being processed. In order to verify that the changes made to the code did not break existing functionality, we added tests for the results of the algorithm on one of the domains. We also added unit tests for some of the new functionality.
   
-  We considered several possible libraries for implementing multithreading. We chose the \emph{Boost Threads} library, which is part of the \emph{Boost} project, over the POSIX threading API for reasons of both convenience and portability; although the code has not yet been ported entirely to Windows, the added code was designed with this future port in mind.
+  We considered several possible libraries for implementing multithreading. We chose the \emph{Boost Threads} library\cite{bib:threads}, which is part of the \emph{Boost} project, over the POSIX threading API for reasons of both convenience and portability; although the code has not yet been ported entirely to Windows, the added code was designed with this future port in mind.
   
   The executable compiled for evaluation runs takes as parameters the domain and problem files to be processed. In addition, command-line arguments allow specifying the number of explanations to allocate in each task, and the maximum number of worker threads to spawn. Except in Method 1, it will never spawn more worker threads than there are hardware threads available.
   
@@ -113,9 +113,10 @@
   
   Boost 1.46.1 is the currently packaged version of Boost on Ubuntu 12.04. Unfortunately it suffers from an occasional deadlock issue due to locking order when a sleeping thread is interrupted by calling \texttt{boost::thread::interrupt()}. We encountered this issue during development which for certain build configurations and datasets would very reliably cause deadlocks. Interruption was being used to exit threads when processing was complete. Interruption causes an exception to be thrown in the interrupted thread; we replaced calls to \texttt{thread::interrupt()} with a task that throws this exception when invoked. The entry function of the worker thread then catches this exception and exits the thread.
   
-  Each algorithm is implemented with a similar structure: a class encapsulates the algorithm, and is instantiated based on the selected algorithm for each run. This class has a method \texttt{explainObservations} which is called on the main thread, and creates the worker threads. Each of the threads runs a static method \texttt{thread\_fn} on the class, which interacts with a \texttt{WorkerData} structure containing the queues or other relevant information. The worker thread method is mostly independent of the nature of the work being done. Finally, tasks are represented by a \texttt{TaskData} structure which contains the expressions for the task, and any other relevant data. This structure has a method \texttt{execute} which is passed a pointer to the \texttt{WorkerData}, processes the expressions, and passes the results back into new tasks or to the main thread.
+  Each algorithm is implemented with a similar structure: a class encapsulates the algorithm, and is instantiated based on the selected algorithm for each run. This class has a method \texttt{explainObservations} which is called on the main thread, and creates the worker threads. Each of the threads runs a static method \texttt{thread\_fn} on the class, which interacts with a \texttt{WorkerData} structure containing the queues or other relevant information. The worker thread method is mostly independent of the nature of the work being done.
+  Finally, tasks are represented by a \texttt{TaskData} structure which contains the expressions for the task, and any other relevant data. This structure has a method \texttt{execute} which is passed a pointer to the \texttt{WorkerData}, processes the expressions, and passes the results back into new tasks or to the main thread.
   
-  The two problem domains used for evaluation are the XPERIENCE domain, which involves hands picking up and moving balls around and into cups, and is based on the XPERIENCE robotics project [TODO: cite]; and the Logistics domain, which involves trucks and airplanes transporting packages between cities, and is based on the Logistics domain in the First International Planning Competition [TODO: cite].
+  The two problem domains used for evaluation are the XPERIENCE domain, which involves hands picking up and moving balls around and into cups, and is based on the XPERIENCE robotics project\cite{bib:xper}; and the Logistics domain, which involves trucks and airplanes transporting packages between cities, and is based on the Logistics domain in the First International Planning Competition\cite{bib:ipc}.
   
   During evaluation, each configuration was run 5 times, on both domains, on both machines, varying either the batch size or the maximum number of worker threads. We have focused on measuring the runtime for the core of the algorithm, ignoring in our timings the parsing of the input files, the probability computations, and output of the results.
   
@@ -125,7 +126,7 @@
   
   \chapter {Method 0 - Original Single-Threaded ELEXIR}
   
-  The first method we include for comparison is a mostly unmodified single-threaded implementation.
+  The first method we include for comparison is a mostly unmodified single-threaded implementation, after the code had been made thread-safe and memory leaks addressed.
   
   \section {Implementation}
   
@@ -161,7 +162,7 @@
   Domain & Sherlock Runtime (seconds) & Catzilla Runtime (seconds)\tabularnewline
   \hline
   XPERIENCE Domain & 5.63 & 14.67\tabularnewline
-  Logistics Domain & 1.36 & TODO\tabularnewline
+  Logistics Domain & 1.36 & 3.59\tabularnewline
   \hline
   \end{tabular}
   \caption{Average Runtimes for Method 0}
@@ -170,7 +171,7 @@
 
   \chapter {Method 1 - One Thread Per Task}
   
-  As a proof of concept for multithreading the algorithm, this method spawns a new thread for each task, one task per hardware thread up to the thread limit.
+  Before implementing the methods discussed in Section~\ref{sec:sched}, as a proof of concept for multithreading the algorithm, we implemented a scheduling algorithm which spawns a new thread for each task, one task per hardware thread up to the thread limit.
   
   \section {Implementation}
   
@@ -234,7 +235,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 1, XPERIENCE domain}
+  \caption{Method 1 runtime with 1 to 4 threads on Sherlock, XPERIENCE}
   \label{fig:thread-s1x}
   \end{figure}
   
@@ -254,7 +255,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 1, Logistics domain}
+  \caption{Method 1 runtime with 1 to 4 threads on Sherlock, Logistics}
   \label{fig:thread-s1l}
   \end{figure}
   
@@ -276,7 +277,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, XPERIENCE domain}
+  \caption{Method 1 runtime with 1 to 16 threads on Catzilla, XPERIENCE}
   \label{fig:thread-c1x}
   \end{figure}
   
@@ -296,7 +297,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, Logistics domain}
+  \caption{Method 1 runtime with 1 to 16 threads on Catzilla, Logistics}
   \label{fig:thread-c1l}
   \end{figure}
   
@@ -304,7 +305,7 @@
   
   \chapter {Method 2 - One Queue Per Thread}
   
-  This method uses one blocking queue per thread, guarded by a mutual exclusion lock.
+  In this section we discuss the implementation of the blocking queue method. This method uses one blocking queue per thread, guarded by a mutual exclusion lock.
   
   \section {Implementation}
   
@@ -312,7 +313,7 @@
   
   The implementation of the queue is based on boost::bounded\_buffer from the documentation of the Boost Circular Buffer library. Internally, it uses a bounded circular buffer guarded by a mutex. Worker threads trying to fetch work wait on a condition variable which is signalled when work is added to the buffer. The main difference between this method and the previous one is that the threads sleep between observations rather than exiting and being recreated.
   
-  Completion is detected using a completion barrier as described in The Art of Multiprocessor Programming [TODO: cite]. A count of active threads is maintained and atomically incremented and decremented by worker threads as they become busy or idle.
+  Completion is detected using a completion barrier as described in The Art of Multiprocessor Programming\cite{bib:aomp}. A count of active threads is maintained and atomically incremented and decremented by worker threads as they become busy or idle.
   
   This implementation does not take into account the batch size parameter, since the main thread is responsible for redistributing the work. The main thread creates as task for each worker thread and splits the explanation to be processed evenly between them.
   
@@ -401,7 +402,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 2, XPERIENCE domain}
+  \caption{Method 2 runtime, 1-4 threads on Sherlock, XPERIENCE}
   \label{fig:thread-s2x}
   \end{figure}
   
@@ -421,7 +422,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 2, Logistics domain}
+  \caption{Method 2 runtime, 1-4 threads on Sherlock, Logistics}
   \label{fig:thread-s2l}
   \end{figure}
   
@@ -443,7 +444,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 1, XPERIENCE domain}
+  \caption{Method 2 runtime, 1-16 threads on Catzilla, XPERIENCE}
   \label{fig:thread-c2x}
   \end{figure}
   
@@ -463,21 +464,19 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 2, Logistics domain}
+  \caption{Method 2 runtime, 1-16 threads on Catzilla, Logistics}
   \label{fig:thread-c2l}
   \end{figure}
   
   The runs on Catzilla are harder to analyse, but we can see that 5 threads seems the best number for the XPERIENCE domain, after which we have some erratic data points with the running time eventually rising again as the number of threads is increased. For the Logistics domain, performance seems to scale near-linearly up to 8 threads, after which it remains more or less constant.
-  
-  [TODO - better analysis here]
-  
+    
   \chapter {Method 3 - Lock-Free Work-Stealing}
   
-  This method uses one lock-free queue for each worker thread. Other threads can steal from this queue if they run out of work in their own queue.
+  In this section we discuss the implementation of the work-stealing queue method. This method uses one lock-free queue for each worker thread. Other threads can steal from this queue if they run out of work in their own queue.
   
   \section {Implementation}
   
-  The implementation of this scheduler is based on [TODO: cite], also described in The Art of Multiprocessor Programming [TODO: cite], which describes a lock-free work-stealing queue where stealing threads steal a single task from the tail of the victim thread's queue, and threads otherwise insert and retrieve work from the head of their own queue. The queue can be resized safely if there is not enough space to insert work at the head of the queue. The original implementation described is appropriate for the language Java where memory is managed by garbage collection, and reads and writes to volatile variables are not reordered. In order to implement this in C++, the replacement of the queue's buffer when it is reallocated had to be guarded using \emph{hazard pointers} [TODO: cite] and the ordering of reads and writes to variables accessed locklessly enforced using compiler-specific memory fence directives. [TODO: cite GCC manual? Or footnote + cite]
+  The implementation of this scheduler is based on\cite{bib:queue}, also described in The Art of Multiprocessor Programming\cite{bib:queue}, which describes a lock-free work-stealing queue where stealing threads steal a single task from the tail of the victim thread's queue, and threads otherwise insert and retrieve work from the head of their own queue. The queue can be resized safely if there is not enough space to insert work at the head of the queue. The original implementation described is appropriate for the language Java where memory is managed by garbage collection, and reads and writes to volatile variables are not reordered. In order to implement this in C++, the replacement of the queue's buffer when it is reallocated had to be guarded using \emph{hazard pointers}\cite{bib:hazard} and the ordering of reads and writes to variables accessed locklessly enforced using compiler-specific memory fence directives.
   
   In terms of performance, we expect this implementation to have low contention due to the lack of locking, and good load-balancing since idle threads will steal work from other threads. During initial testing, we found that performance would drop as the number of threads increased from 2 to 4 threads. Using cachegrind to produce a differential profile between a run with 1 thread and a run with 4 threads, we discovered that idle threads were spending a lot of time in random number generation, which is used when selecting a victim thread to steal from. The insertion of a short sleep after failed stealing attempts resolved this issue.
    
@@ -589,7 +588,7 @@
   \begin{centering}
   \includegraphics[width=0.8\textwidth]{{{images/batch-xper5-sherlock-3-1}}}
   \par\end{centering}
-  \caption{Runtime with varying batch size on Sherlock, Method 3, XPERIENCE domain}
+  \caption{Method 3 runtime, varying batch size on Sherlock, XPERIENCE}
   \label{fig:batch-3}
   \end{figure}
   
@@ -615,7 +614,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 3, XPERIENCE domain}
+  \caption{Method 3 runtime, 1-4 threads on Sherlock, XPERIENCE}
   \label{fig:thread-s3x}
   \end{figure}
   
@@ -635,7 +634,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 3, Logistics domain}
+  \caption{Method 3 runtime, 1-4 threads on Sherlock, Logistics}
   \label{fig:thread-s3l}
   \end{figure}
   
@@ -657,7 +656,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 3, XPERIENCE domain}
+  \caption{Method 3 runtime, 1-16 threads on Catzilla, XPERIENCE}
   \label{fig:thread-c3x}
   \end{figure}
   
@@ -677,19 +676,15 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 3, Logistics domain}
+  \caption{Method 3 runtime, 1-16 threads on Catzilla, Method 3, Logistics}
   \label{fig:thread-c3l}
   \end{figure}
   
   The runs on Catzilla show a sharp speedup at first, followed by a slow decline. The XPERIENCE domain peaks at around 5 threads, and the Logistics domain around 7 threads. 
   
-  [TODO - thread idle/active times]
-  
-  [TODO - cachegrind results]
-  
   \chapter {Method 4 - Single Global Queue}
   
-  This method uses a single global queue of tasks, guarded by a mutual exclusion lock.
+  In this section we discuss the global queue method. This method uses a single global queue of tasks, guarded by a mutual exclusion lock.
   
   \section {Implementation}
   
@@ -802,7 +797,7 @@
   \begin{centering}
   \includegraphics[width=0.8\textwidth]{images/batch-xper5-sherlock-4-1}
   \par\end{centering}
-  \caption{Work-Stealing Runtime with varying batch size on Sherlock, XPERIENCE domain}
+  \caption{Runtime, varying batch size on Sherlock, Method 3, XPERIENCE}
   \label{fig:batch-4}
   \end{figure}
   
@@ -828,7 +823,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 4, XPERIENCE domain}
+  \caption{Method 4 runtime, 1-4 threads on Sherlock, XPERIENCE}
   \label{fig:thread-s4x}
   \end{figure}
   
@@ -848,7 +843,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 4 threads on Sherlock, Method 4, Logistics domain}
+  \caption{Method 4 runtime, 1-4 threads on Sherlock, Logistics}
   \label{fig:thread-s4l}
   \end{figure}
   
@@ -870,7 +865,7 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 4, XPERIENCE domain}
+  \caption{Method 4 runtime, 1-16 threads on Catzilla, XPERIENCE}
   \label{fig:thread-c4x}
   \end{figure}
   
@@ -890,15 +885,11 @@
     \end{centering}
   }
   \end{minipage}
-  \caption{Runtime with 1 to 16 threads on Catzilla, Method 4, Logistics domain}
+  \caption{Method 4 runtime, 1-16 threads on Catzilla, Logistics}
   \label{fig:thread-c4l}
   \end{figure}
   
   The runs on Catzilla show a linear speedup at first, followed by a peak and tailing off. Both domains peak at around 8 threads.
-  
-  [TODO - thread idle/active times]
-  
-  [TODO - cachegrind results]
   
   % \input{sections/04_design}
    
@@ -916,6 +907,29 @@
   % \input{sections/appendix/A_evaluation.tex}
 
   % Bibliography
-  \bibliography{sections/misc/z_bib.tex}{}
-  \bibliographystyle{unsrt}
+  % \bibliography{sections/misc/z_bib.tex}{}
+  % \bibliographystyle{unsrt}
+  \begin{thebibliography}{100}
+  \bibitem{bib:netsec} C. W. Geib and R. P. Goldman, ``Plan Recognition in Intrusion Detection Systems'', in \emph{DARPA Information Survivability Conference and Exposition (DISCEX)}, 2001.
+  \bibitem{bib:jast} M. E. Foster, T. By, M. Rickert, and A. Knoll, ``Human-Robot Dialogue for Joint Construction Tasks'', \emph{ICMI}, 2006.
+  \bibitem{bib:assistive} M. E. Pollack, ``Intelligent technology for an aging population: The use of AI to assist elders with cognitive impairment'', \emph{AI Magazine}, vol. 26, no. 2, pp. 9-24, 2005.
+  \bibitem{bib:ccg} M. Steedman, ``The Syntactic Process'', MIT Press, 2000.
+  \bibitem{bib:ccg2} B. Hoffman ``Integrating Free Word Order Syntax and Information Structure'', in \emph{Proceedings of the seventh conference on European chapter of the Association for Computational Linguistics (EACL'95)}, pp. 245-252, 1995.
+  \bibitem{bib:elexir} C. W. Geib, ``Delaying Commitment in Plan Recognition Using Combinatory Categorial Grammars'', in \emph{Proceedings of the International Joint Conference on Artificial Intelligence (IJCAI)}, pp. 1702-1707, 2009.
+  \bibitem{bib:aomp} M. Herlihy and N. Shavit, ``The Art of Multiprocessor Programming, Revised First Edition'', Morgan Kaufmann, 2012.
+  \bibitem{bib:hmm} H. H. Bui, S. Venkatesh, and G. West, ``Policy recognition in the Abstract Hidden Markov Model'', \emph{Journal of Artificial Intelligence Research}, vol. 17, pp. 451-499.
+  \bibitem{bib:graph} D. Avrahami-Zilberbrand and G. A. Kaminka, ``Fast and Complete Symbolic Plan Recognition'', in \emph{Proceedings IJ-CAI}, 2005.
+  \bibitem{bib:search} G. R. Andrews, ``Foundations of Multithreaded, Parallel, and Distributed
+Programming'', Addison-Wesley, 2000.
+  \bibitem{bib:parsing} D. Grune, ``Parsing Techniques: A Practical Guide'', Springer, 2008.
+  \bibitem{bib:ccgpar} S. Clark and J. R. Curran, ``Log-Linear Models for Wide-Coverage CCG Parsing'', in \emph{Proceedings of the 2003 Conference on Empirical Methods in Natural
+Language Processing}, pp. 97-104, 2003.
+ \bibitem{bib:workstealing} R. D. Blumofe and C.E. Leiserson, ``Scheduling Multithreaded Computations by Work Stealing'', in \emph{Journal of the ACM (JACM)}, vol. 46, issue 5 pp. 720-748, 1999.
+ \bibitem{bib:queue} D. Chase and Y. Lev, ``Dynamic Circular Work-Stealing Deque'', in \emph{Proceedings of the Seventeenth Annual ACM Symposium on Parallelism in Algorithms and Architectures (SPAA'05)}, pp. 21-28, 2005.
+ \bibitem{bib:threads} A. Williams, ``What's New in Boost Threads?'', \emph{Dr. Dobb's Journal}, November 2008 issue.
+ \bibitem{bib:xper} http://www.xperience.org/.
+ \bibitem{bib:ipc} D. Long and M. Fox, ``The 3rd international Planning Competition: Results and Analysis'', \emph{Journal of Artificial Intelligence Research}, vol. 20, pp. 1-59, 2003.
+ \bibitem{bib:hazard} M. Michael, ``Hazard Pointers: Safe Memory Reclamation for Lock-Free Objects'', \emph{IEEE Transactions on Parallel and Distributed Systems}, vol. 15 issue 6, pp. 491-504, 2004.
+  \end{thebibliography}
+
 \end{document}

@@ -6,8 +6,6 @@ We have seen evidence suggesting that the problem domain has an effect on the sc
 
 We have investigated and successfully parallelised the main part of the ELEXIR algorithm. The largest part of the remaining runtime comes from the probability computation post-process, which seems especially expensive now that we have sped up the main part. Further work could explore parallelising this section of the algorithm to further speed up the computation.
 
-[TODO Could even graph the probability computation times, since we recorded them.]
-
 The ELEXIR algorithm produces a complete list of possible consistent explanations and their probabilities. Client code may not need such a full exploration of the possibility space, and instead need only a list of the most probable explanations. The ELEXIR algorithm could be adapted to expand only the most probable current explanations. As new observations arrive, older unexplored possibilities may become more likely, and be explored further.
 
 In order to apply the ELEXIR algorithm to real time scenarios, an incremental version would be desirable, maintaining a list of explanations and updating it with new observations rather than updating it as a batch. This would mean incrementally computing the probabilities, which would naturally mean the parallelisation of the probability computation as suggested above.
