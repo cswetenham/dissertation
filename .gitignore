@@ -10,6 +10,5 @@
 *.bbl
 *.blg
 *.toc
-*.pdf
 !images/*.pdf
 !styles/**/*.pdf
